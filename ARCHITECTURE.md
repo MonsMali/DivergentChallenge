@@ -35,13 +35,14 @@ User Query
 - **anthropic SDK** - Direct Claude Sonnet 4 API access; thin wrapper, no framework needed for 3 LLM calls per query
 - **pandas** - CSV parsing, DataFrame merges, null handling for tabular deal data
 - **pydantic** - Typed data contracts between pipeline steps; schema validation at each boundary
-- **click** - CLI framework for commands (`ask`, `status`), options, and flags
+- **click** - CLI framework for commands (`ask`, `chat`, `status`), options, and flags
+- **rich** - Terminal formatting: colored output, tables, panels, progress spinners
 - **google-api-python-client** - Google Drive file download via service account authentication
 - **python-dotenv** - Environment variable loading for API keys and credentials
 
 ## Orchestration
 
-Linear sequential pipeline: Ingester -> Planner -> Analyzer -> Synthesizer. Each step has typed pydantic input/output. The orchestrator runs steps in sequence, collects token usage from each LLM call, and returns a structured `PipelineResult`. This is intentionally not a DAG — the workflow is linear with each step depending on the previous. A verbose mode prints intermediate results after each step for debugging.
+Linear sequential pipeline: Ingester -> Planner -> Analyzer -> Synthesizer. Each step has typed pydantic input/output. The orchestrator exposes `load_data()` (Drive download + ingestion) and `run_analysis()` (planner + analyzer + synthesizer) as separate functions. This split enables the `chat` command to cache ingested data and only re-run the LLM steps per query. A verbose mode prints intermediate results after each step for debugging.
 
 ## Deterministic vs LLM Decisions
 
@@ -57,7 +58,7 @@ Linear sequential pipeline: Ingester -> Planner -> Analyzer -> Synthesizer. Each
 
 ## Google Drive Integration
 
-The source layer is abstracted from the pipeline. `sources/gdrive.py` authenticates via service account, downloads all files from a Drive folder to a temp directory, and returns the path. The ingester receives a directory path regardless of origin, making it source-agnostic. The same pattern extends to S3, SFTP, or CRM API exports by adding new source modules.
+The source layer is abstracted from the pipeline. `sources/gdrive.py` authenticates via service account, downloads all files from a Drive folder to a temp directory, and returns the path. The ingester receives a directory path regardless of origin, making it source-agnostic. This pattern extends to other sources (S3, SFTP, CRM API exports) by adding new modules that return a directory path.
 
 ## Token Usage & Cost
 

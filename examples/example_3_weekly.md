@@ -11,26 +11,20 @@
 ## Pipeline Steps (Verbose Output)
 
 ```
---- Data source: local ---
-
---- Ingester: 5 deals loaded ---
-  Complete: 2
-  Incomplete: 3
-  Orphaned companies: ['Unknown Co']
-  Missing fields: {'stage': 1, 'close_date': 1}
+  ✓ 5 deals loaded from Google Drive
 
 --- Planner ---
-  Analysis type: actions
-  Relevant deals: all
+  Type: actions
+  Deals: all
   Reasoning: Need to analyze all deals to identify actionable items for this week
   including data quality issues, upcoming close dates, and stage-appropriate next steps.
 
 --- Analyzer ---
-  Deal #1 (Acme Corp): risk=0.25, sentiment=cautious
-  Deal #2 (Beta Ltd): risk=0.067, sentiment=positive
-  Deal #3 (Delta Inc): risk=0.707, sentiment=unclear
-  Deal #4 (Omega SA): risk=0.61, sentiment=neutral
-  Deal #5 (Unknown Co): risk=1.0, sentiment=neutral
+  #1 Acme Corp: risk=0.25 sentiment=cautious
+  #2 Beta Ltd: risk=0.067 sentiment=positive
+  #3 Delta Inc: risk=0.707 sentiment=unclear
+  #4 Omega SA: risk=0.61 sentiment=neutral
+  #5 Unknown Co: risk=1.0 sentiment=neutral
 ```
 
 ---

@@ -42,32 +42,35 @@ source .venv/bin/activate  # Linux/Mac
 # Install dependencies
 pip install -e .
 
-# Configure API key
+# Configure API key and credentials
 cp .env.example .env
 # Edit .env and set ANTHROPIC_API_KEY=sk-ant-...
 
-# Run the CLI
+# Single query mode
 python -m src.cli ask "Which deals should I focus on this week?"
+
+# Interactive copilot mode (ingests once, ask multiple questions)
+python -m src.cli chat
 
 # Health check (no API key needed)
 python -m src.cli status
 ```
 
-### Google Drive Setup (Optional)
+### Google Drive Setup
 
-The primary data source is Google Drive. To use it:
+The system connects to Google Drive as its external data source. To configure:
 
 1. **Create a GCP project** at [console.cloud.google.com](https://console.cloud.google.com)
 2. **Enable the Google Drive API** (APIs & Services > Library > search "Google Drive API")
 3. **Create a service account** (IAM & Admin > Service Accounts > Create)
 4. **Download the JSON credentials** file and save as `credentials.json` in the project root
 5. **Share the Drive folder** with the service account email (e.g., `revops@project.iam.gserviceaccount.com`)
-6. Run with the `--source gdrive` flag:
+
+The CLI defaults to the challenge dataset folder. To use a different folder:
 
 ```bash
 python -m src.cli ask "What looks at risk?" \
-  --source gdrive \
-  --folder-id 1CjyUQgtfl0AKEXBhkS7pxuEEs1UWn1ud
+  --folder-id YOUR_FOLDER_ID
 ```
 
 Alternatively, set the `GOOGLE_SERVICE_ACCOUNT_JSON` environment variable to the JSON string content.
@@ -94,8 +97,7 @@ DivergentChallenge/
 │   ├── models.py                # Pydantic models for inter-step data
 │   ├── orchestrator.py          # Runs pipeline steps in sequence
 │   ├── sources/
-│   │   ├── gdrive.py            # Google Drive: auth, list, download
-│   │   └── local.py             # Local directory loader (dev fallback)
+│   │   └── gdrive.py            # Google Drive: auth, list, download
 │   └── pipeline/
 │       ├── ingester.py          # Deterministic: load, parse, normalize, join
 │       ├── planner.py           # LLM: query understanding, plan generation
@@ -161,6 +163,7 @@ User Query
 | **pandas** | Data manipulation and merging | Standard, battle-tested library for tabular data. Handles CSV parsing, joins, and null value handling out of the box. |
 | **pydantic** | Typed data contracts between pipeline steps | Ensures data integrity at each boundary. Makes the orchestration self-documenting and catches schema violations early. |
 | **click** | CLI framework | Lightweight, well-documented, no magic. Supports commands, options, and flags with minimal boilerplate. |
+| **rich** | Terminal formatting | Colored output, tables, panels, and progress spinners. Makes pipeline output readable and the demo experience sharper, with minimal code. |
 | **google-api-python-client** | Google Drive integration | Official Google SDK for Drive API access. Uses service account auth for CLI/automation suitability. |
 
 ### Deliberately Not Used
@@ -183,6 +186,10 @@ The pipeline follows a **linear sequential flow**: Ingester -> Planner -> Analyz
 6. Collects token usage from all LLM steps into a structured summary
 
 This is intentionally **not** a DAG or event-driven system. The workflow is linear: each step depends on the previous step's output. For a production system with multiple data sources, parallel analysis paths, or conditional branching, a DAG-based orchestrator (e.g., Prefect, Airflow) would be appropriate. For this use case, sequential execution is the simplest correct solution.
+
+### Interactive Mode (chat command)
+
+The `chat` command runs ingestion once on startup and caches the enriched deals in memory. Subsequent queries only execute the planner, analyzer, and synthesizer steps, avoiding redundant Drive API calls and file I/O. This means the first query pays the full cost (download + ingestion + 3 LLM calls), but every subsequent query only costs the 3 LLM calls (~$0.016 each) with no data loading overhead.
 
 ---
 
@@ -209,15 +216,12 @@ The boundary is not about difficulty but about whether the task has a **single c
 
 ### Architecture
 
-The source layer is **abstracted from the pipeline**. The ingester receives a directory path regardless of whether files came from Google Drive or local disk. This is implemented via two source modules:
-
-- `sources/local.py`: Validates a local directory, warns about missing files
-- `sources/gdrive.py`: Authenticates with Google Drive API, downloads files to a temp directory
+The source layer is **abstracted from the pipeline**. The ingester receives a directory path regardless of where files originated. The `sources/gdrive.py` module authenticates with Google Drive, downloads files to a temp directory, and returns the path. The ingester never knows (or needs to know) it's working with Drive data.
 
 ### Google Drive Integration
 
 - Uses a **service account** (no browser OAuth flow) for CLI/automation suitability
-- Files are downloaded to a `tempfile.mkdtemp()` directory, then processed identically to local files
+- Files are downloaded to a `tempfile.mkdtemp()` directory, then passed to the ingester as a local path
 - Error handling: graceful failures for auth issues, missing folders, empty folders
 
 ### Extensibility
@@ -266,11 +270,12 @@ The synthesizer dominates cost (78%) because it produces the longest output. The
 
 ## Example Inputs and Outputs
 
-Full examples with verbose pipeline output are in the `examples/` directory:
+Full examples with pipeline output are in the `examples/` directory:
 
 - [`example_1_focus.md`](examples/example_1_focus.md) - "Which deals should I focus on this week?"
 - [`example_2_risk.md`](examples/example_2_risk.md) - "What deals look at risk?"
 - [`example_3_weekly.md`](examples/example_3_weekly.md) - "What actions should we take this week?"
+- [`example_4_chat.md`](examples/example_4_chat.md) - Interactive chat session with two queries (demonstrates cached ingestion)
 
 ### Sample Output (abbreviated)
 
