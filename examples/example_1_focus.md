@@ -4,6 +4,8 @@
 
 **Command:** `python -m src.cli ask "Which deals should I focus on this week?" --verbose`
 
+*Output captured on March 31, 2026. Date-relative language in the synthesis reflects that run date.*
+
 ---
 
 ## Pipeline Steps (Verbose Output)

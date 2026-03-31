@@ -1,6 +1,6 @@
 # RevOps Copilot
 
-A Python CLI application that acts as a **RevOps Copilot** for Private Equity portfolio companies. It ingests fragmented operational data (CSVs, text files), structures it, and lets users ask natural language business questions like *"Which deals should I focus on?"*, *"What looks at risk?"*, or *"What actions should we take this week?"*. The system produces **actionable recommendations with specific next steps**, not generic summaries.
+A Python CLI application that acts as a RevOps Copilot for Private Equity portfolio companies. It ingests fragmented operational data (CSVs, text files), structures it, and lets users ask natural language business questions like *"Which deals should I focus on?"*, *"What looks at risk?"*, or *"What actions should we take this week?"*. The system produces actionable recommendations with specific next steps, not generic summaries.
 
 Built as a technical challenge for the Agentic AI Engineer role at Divergent Investments.
 
@@ -31,8 +31,8 @@ Built as a technical challenge for the Agentic AI Engineer role at Divergent Inv
 
 ```bash
 # Clone the repo
-git clone <repo-url>
-cd revops-copilot
+git clone https://github.com/MonsMali/DivergentChallenge.git
+cd DivergentChallenge
 
 # Create and activate virtual environment
 python -m venv .venv
@@ -71,6 +71,45 @@ python -m src.cli ask "What looks at risk?" \
 ```
 
 Alternatively, set the `GOOGLE_SERVICE_ACCOUNT_JSON` environment variable to the JSON string content.
+
+---
+
+## Project Structure
+
+```
+DivergentChallenge/
+├── pyproject.toml
+├── .env.example
+├── data/                        # Local fallback data for dev/testing
+│   ├── accounts.csv
+│   ├── deals.csv
+│   ├── activities.csv
+│   └── call_notes.txt
+├── src/
+│   ├── __init__.py
+│   ├── __main__.py
+│   ├── cli.py                   # CLI entry point (click)
+│   ├── config.py                # Settings, API keys via env vars
+│   ├── llm.py                   # Thin wrapper around anthropic SDK, token tracking
+│   ├── models.py                # Pydantic models for inter-step data
+│   ├── orchestrator.py          # Runs pipeline steps in sequence
+│   ├── sources/
+│   │   ├── gdrive.py            # Google Drive: auth, list, download
+│   │   └── local.py             # Local directory loader (dev fallback)
+│   └── pipeline/
+│       ├── ingester.py          # Deterministic: load, parse, normalize, join
+│       ├── planner.py           # LLM: query understanding, plan generation
+│       ├── analyzer.py          # Hybrid: deterministic scoring + LLM classification
+│       └── synthesizer.py       # LLM: actionable output generation
+├── tests/
+│   ├── test_models.py
+│   ├── test_ingester.py
+│   └── test_analyzer.py
+└── examples/
+    ├── example_1_focus.md
+    ├── example_2_risk.md
+    └── example_3_weekly.md
+```
 
 ---
 
@@ -124,7 +163,7 @@ User Query
 | **click** | CLI framework | Lightweight, well-documented, no magic. Supports commands, options, and flags with minimal boilerplate. |
 | **google-api-python-client** | Google Drive integration | Official Google SDK for Drive API access. Uses service account auth for CLI/automation suitability. |
 
-### What We Deliberately Did NOT Use
+### Deliberately Not Used
 
 - **No vector databases, no embeddings, no RAG.** The dataset is 5 deals. It fits entirely in an LLM context window. Using vector search here would be over-engineering and would demonstrate poor judgment about when to apply complex architectures.
 - **No LangChain / LlamaIndex.** For 3 LLM calls with clear input/output contracts, a 40-line wrapper module (`llm.py`) is simpler, more debuggable, and has zero framework lock-in.
@@ -237,14 +276,20 @@ Full examples with verbose pipeline output are in the `examples/` directory:
 
 **Query:** *"Which deals should I focus on this week?"*
 
-> **Priority 1: Beta Ltd ($120K) - Sarah**
-> Schedule final contract review meeting by Wednesday. 80% probability, positive sentiment, closes April 10th. Confirm pricing, get legal review started, prepare DocuSign package.
->
-> **Priority 2: Acme Corp ($50K) - John**
-> Address budget concerns with ROI presentation by Thursday. 10-day silence on deal with budget hesitation needs immediate attention.
->
-> **Priority 5: Unknown Co ($45K) - Sarah**
-> Data cleanup required before any sales action. Missing critical data (stage, close date, account info). Spend 30 minutes updating CRM or mark as dead deal.
+```
+Priority 1: Beta Ltd ($120K) - Sarah
+Schedule final contract review meeting by Wednesday. 80% probability, positive
+sentiment, closes April 10th. Confirm pricing, get legal review started,
+prepare DocuSign package.
+
+Priority 2: Acme Corp ($50K) - John
+Address budget concerns with ROI presentation by Thursday. 10-day silence on
+deal with budget hesitation needs immediate attention.
+
+Priority 5: Unknown Co ($45K) - Sarah
+Data cleanup required before any sales action. Missing critical data (stage,
+close date, account info). Spend 30 minutes updating CRM or mark as dead deal.
+```
 
 ---
 

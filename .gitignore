@@ -3,6 +3,10 @@
 .venv/
 venv/
 
+# Internal working documents
+CLAUDE.md
+.claude/
+
 # Python
 __pycache__/
 *.pyc

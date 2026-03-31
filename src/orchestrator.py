@@ -6,7 +6,7 @@ import logging
 
 import click
 
-from src.models import PipelineResult, TokenUsage
+from src.models import AnalysisPlan, PipelineResult, TokenUsage
 from src.pipeline.analyzer import analyze
 from src.pipeline.ingester import ingest
 from src.pipeline.planner import plan
@@ -54,7 +54,7 @@ def run_pipeline(
     if not enriched_deals:
         return PipelineResult(
             query=query,
-            plan=__import__("src.models", fromlist=["AnalysisPlan"]).AnalysisPlan(),
+            plan=AnalysisPlan(),
             enriched_deals=[],
             synthesis="No deals available to analyze.",
             data_quality=quality_report,

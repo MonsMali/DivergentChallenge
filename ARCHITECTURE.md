@@ -32,7 +32,7 @@ User Query
 
 ## Tools Used
 
-- **anthropic SDK** - Direct Claude Sonnet 4 API access; thin wrapper over framework for 3 LLM calls per query
+- **anthropic SDK** - Direct Claude Sonnet 4 API access; thin wrapper, no framework needed for 3 LLM calls per query
 - **pandas** - CSV parsing, DataFrame merges, null handling for tabular deal data
 - **pydantic** - Typed data contracts between pipeline steps; schema validation at each boundary
 - **click** - CLI framework for commands (`ask`, `status`), options, and flags
