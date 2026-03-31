@@ -1,0 +1,6 @@
+deal_id,company,stage,amount,owner,close_date,probability
+1,Acme Corp,Proposal,50000,John,2026-04-15,0.6
+2,Beta Ltd,Negotiation,120000,Sarah,2026-04-10,0.8
+3,Delta Inc,Discovery,30000,John,2026-05-01,0.3
+4,Omega SA,Proposal,75000,Mike,2026-04-20,0.5
+5,Unknown Co,,45000,Sarah,,0.4
