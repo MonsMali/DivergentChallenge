@@ -3,10 +3,8 @@
 .venv/
 venv/
 
-# Internal working documents
-CLAUDE.md
-INTERVIEW_PREP.md
-.claude/
+# Data (downloaded from Google Drive at runtime)
+data/
 
 # Python
 __pycache__/

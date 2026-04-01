@@ -1,5 +1,0 @@
-Acme Corp: Interested but budget concerns.
-Beta Ltd: Strong interest, pushing for fast close.
-Delta Inc: Early stage, unclear use case.
-Omega SA: Long sales cycle expected.
-Unknown Co: No recent updates.

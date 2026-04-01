@@ -16,54 +16,50 @@ For a detailed explanation of the architecture, workflow, tools used, and cost o
 
 - Python 3.11+
 - An Anthropic API key ([get one here](https://console.anthropic.com/))
+- Google Cloud service account with Drive API access (see step 2 below)
 
-### Quick Start
+### 1. Install
 
 ```bash
-# Clone the repo
 git clone https://github.com/MonsMali/DivergentChallenge.git
 cd DivergentChallenge
 
-# Create and activate virtual environment
 python -m venv .venv
 source .venv/bin/activate  # Linux/Mac
 # .venv\Scripts\activate   # Windows
 
-# Install dependencies
 pip install -e .
+```
 
-# Configure API key and credentials
+### 2. Configure Google Drive Credentials
+
+The app connects to Google Drive to ingest the challenge dataset. To set this up:
+
+1. Create a GCP project at [console.cloud.google.com](https://console.cloud.google.com)
+2. Enable the **Google Drive API** (APIs & Services > Library > search "Google Drive API")
+3. Create a **service account** (IAM & Admin > Service Accounts > Create)
+4. Download the JSON credentials file and save it as `credentials.json` in the project root
+5. Share the [challenge Drive folder](https://drive.google.com/drive/folders/1CjyUQgtfl0AKEXBhkS7pxuEEs1UWn1ud) with the service account email (e.g., `revops@your-project.iam.gserviceaccount.com`)
+
+Alternatively, paste the full JSON content into the `GOOGLE_SERVICE_ACCOUNT_JSON` variable in `.env` (useful for CI/CD).
+
+### 3. Set API Key and Run
+
+```bash
 cp .env.example .env
 # Edit .env and set ANTHROPIC_API_KEY=sk-ant-...
 
-# Run the copilot (interactive mode -- recommended)
+# Interactive mode (recommended) -- loads data once, ask multiple questions
 python -m src.cli chat
 
-# Or run a single query
+# Single query
 python -m src.cli ask "Which deals should I focus on this week?"
 
-# Health check (no API key needed)
+# Health check -- no API key needed, shows data quality summary
 python -m src.cli status
 ```
 
-### Google Drive Setup
-
-The system connects to Google Drive as its external data source. To configure:
-
-1. **Create a GCP project** at [console.cloud.google.com](https://console.cloud.google.com)
-2. **Enable the Google Drive API** (APIs & Services > Library > search "Google Drive API")
-3. **Create a service account** (IAM & Admin > Service Accounts > Create)
-4. **Download the JSON credentials** file and save as `credentials.json` in the project root
-5. **Share the Drive folder** with the service account email (e.g., `revops@project.iam.gserviceaccount.com`)
-
-The CLI defaults to the challenge dataset folder. To use a different folder:
-
-```bash
-python -m src.cli ask "What looks at risk?" \
-  --folder-id YOUR_FOLDER_ID
-```
-
-Alternatively, set the `GOOGLE_SERVICE_ACCOUNT_JSON` environment variable to the JSON string content.
+To use a different Drive folder: `python -m src.cli ask "..." --folder-id YOUR_FOLDER_ID`
 
 ---
 
@@ -73,11 +69,6 @@ Alternatively, set the `GOOGLE_SERVICE_ACCOUNT_JSON` environment variable to the
 DivergentChallenge/
 ├── pyproject.toml
 ├── .env.example
-├── data/                        # Local fallback data for dev/testing
-│   ├── accounts.csv
-│   ├── deals.csv
-│   ├── activities.csv
-│   └── call_notes.txt
 ├── src/
 │   ├── __init__.py
 │   ├── __main__.py
