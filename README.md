@@ -123,35 +123,25 @@ The system is a **multi-step agentic pipeline** with four distinct stages. Each 
 User Query
     |
     v
-+----------+    Deterministic: Google Drive download (or local fallback),
-| INGESTER |    file I/O, parsing, normalization,
-+----+-----+    join call_notes to deals via company name matching.
-     |          Outputs: structured DataFrames + data quality metadata.
++----------+    Deterministic: Google Drive download, CSV parsing,
+| INGESTER |    data merging via joins, call note matching by company name,
++----+-----+    data quality flagging. No LLM involved.
+     |          Output: list[EnrichedDeal] + DataQualityReport
      v
-+----------+    LLM (Claude Sonnet): receives user query + data schema summary
-| PLANNER  |    (column names, row counts, sample values, quality flags).
-+----+-----+    Outputs: structured JSON analysis plan.
++----------+    LLM (Sonnet 4.6): receives query + schema summary
+| PLANNER  |    (column names, row counts, value ranges -- not raw data).
++----+-----+    Output: AnalysisPlan (JSON) with analysis type + deal filter.
      |
      v
-+----------+    Hybrid: deterministic for filtering, aggregation, scoring,
-| ANALYZER |    joins. LLM for interpreting free-text notes, classifying
-+----+-----+    deal sentiment, extracting insights from unstructured fields.
-     |          Outputs: enriched deal data with risk scores and classifications.
++----------+    Hybrid: deterministic risk scoring via weighted formula
+| ANALYZER |    (contact recency, meetings, emails, probability, data quality).
++----+-----+    LLM (Haiku 4.5): batched sentiment classification of call notes.
+     |          Output: deals with risk_score + sentiment attached.
      v
-+-------------+  LLM (Claude Sonnet): takes structured analysis output and
-| SYNTHESIZER |  generates prioritized, actionable recommendations with
-+-------------+  specific next steps, not generic summaries.
++-------------+  LLM (Sonnet 4.6): receives scored deals + query + today's date.
+| SYNTHESIZER |  Generates prioritized, actionable recommendations with
++-------------+  named deals, dollar amounts, and concrete next steps.
 ```
-
-### Step Details
-
-- **Ingester** (deterministic): Loads CSVs and text files, merges deals with accounts and activities via joins, attaches call notes by company name matching, flags data quality issues. No LLM involved.
-
-- **Planner** (LLM): Receives the user's natural language query plus a concise schema summary (not raw data). Produces a structured JSON analysis plan indicating which deals to focus on and what type of analysis to perform.
-
-- **Analyzer** (hybrid): Computes deterministic risk scores using a weighted formula (contact recency, meeting count, email engagement, probability, data quality). Separately, sends all call notes to the LLM in a single batched call for sentiment classification.
-
-- **Synthesizer** (LLM): Takes the full enriched deal data with scores and sentiment, plus the original query, and generates specific, actionable recommendations with named deals, dollar amounts, and concrete next steps.
 
 ---
 
