@@ -133,6 +133,7 @@ The fastest way to see the system in action is `python -m src.cli chat`. Data lo
 │                                                 │
 │  ...                                            │
 ╰─────────────────────────────────────────────────╯
+planner 348→114 | analyzer 136→60 | synthesizer 872→2110 | $0.0353
 
 > What's the total pipeline value at risk?
   ...
