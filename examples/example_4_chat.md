@@ -24,55 +24,66 @@
 
 **Output:**
 
-## Weekly Deal Focus Priority Ranking
+## Weekly Deal Focus Report
+**As of April 1, 2026 | Prepared for Sales Leadership**
 
-Based on weighted business impact (deal size x probability / risk score) and urgency:
+### Priority Rankings (Expected Value Adjusted for Risk)
 
-**1. Beta Ltd - $120k (IMMEDIATE ACTION REQUIRED)**
-**2. Acme Corp - $50k**
-**3. Omega SA - $75k**
-**4. Delta Inc - $30k**
-**5. Unknown Co - $45k (DATA CLEANUP NEEDED)**
+| Rank | Deal | Raw EV | Risk Score | Adjusted Priority | Close Date | Owner |
+|------|------|--------|------------|-------------------|------------|-------|
+| 1 | Beta Ltd | $96,000 | 0.067 (Low) | Critical | Apr 10 | Sarah |
+| 2 | Acme Corp | $30,000 | 0.25 (Low-Med) | High | Apr 15 | John |
+| 3 | Omega SA | $37,500 | 0.61 (High) | Medium | Apr 20 | Mike |
+| 4 | Unknown Co | $18,000 | 1.0 (Max) | Data Blocker | MISSING | Sarah |
+| 5 | Delta Inc | $9,000 | 0.707 (High) | Low/Nurture | May 1 | John |
 
-### PRIORITY 1: Beta Ltd ($120,000) - Sarah
-- **Expected value:** $96,000 with 80% close probability
-- **Critical timeline:** Close date April 10th (THIS WEEK)
-- **Action:** Schedule contract review meeting by Wednesday 4/2
-- **Risk mitigation:** Their "fast close" pressure could indicate budget deadline - confirm decision timeline and get legal/procurement contacts immediately
-- **Next 48 hours:** Send final proposal terms and pricing confirmation
+**PRIORITY 1 -- Beta Ltd | $120,000 | Close: April 10 | Owner: Sarah**
 
-### PRIORITY 2: Acme Corp ($50,000) - John
-- **Expected value:** $30,000 with 60% close probability
-- **Budget concern resolution:** Schedule budget/ROI discussion call by Thursday 4/3
-- **10-day communication gap:** John needs to re-engage immediately with cost-benefit analysis
-- **Specific action:** Prepare scaled-down proposal option (potentially $35k) to address budget constraints
-- **Timeline:** Aim to advance to negotiation stage by Friday 4/4
+Why it's #1: Highest adjusted expected value at $96K, lowest risk score in the portfolio (0.067), positive sentiment, and a prospect explicitly pushing for a fast close. You have **9 calendar days** to get this signed.
 
-### PRIORITY 3: Omega SA ($75,000) - Mike
-- **Data quality issue:** 15-day stale contact with zero meetings scheduled
-- **Immediate action:** Mike must schedule discovery call within 2 business days
-- **Risk factor:** High risk score (0.61) suggests deal may stall - need concrete next steps commitment
-- **Manufacturing cycle consideration:** Confirm their Q2 budget allocation deadline
+The risk here is execution delay, not deal quality.
 
-### PRIORITY 4: Delta Inc ($30,000) - John
-- **Critical data gap:** 25-day stale contact flags this as near-dead
-- **John's action:** Send "break-up" email by Tuesday 4/1 - either re-engage or disqualify
-- **Use case clarity:** If they respond, schedule 30-min use case definition call
-- **Resource allocation:** Don't invest more than 2 hours without clear buying signals
+Actions this week:
+1. **Today (Apr 1) -- Sarah to send redlined contract draft.** If legal review hasn't started, escalate internally *today*. At $120K with a Fintech buyer in the UK, compliance and contract review typically need 3-5 business days minimum.
+2. **By Apr 3 -- Schedule a live call to walk through final terms.** Confirm: payment terms, start date, and any outstanding procurement requirements (especially relevant for UK Fintech -- check for FCA-related vendor approval steps).
+3. **By Apr 7 -- Verbal confirmation of signed intent.** If Sarah hasn't received a clear "yes, we're signing by Apr 10," flag immediately to management for executive sponsor outreach from your side.
 
-### PRIORITY 5: Unknown Co ($45,000) - Sarah
-- **Data cleanup required:** Missing stage, close date, and account details
-- **Sarah's immediate task:** Spend 30 minutes researching company and updating CRM data
-- **Decision point:** If no response to outreach by Friday 4/4, mark as "Closed Lost - No Response"
-- **40-day gap:** This deal is likely dead but needs formal disposition
+**PRIORITY 2 -- Acme Corp | $50,000 | Close: April 15 | Owner: John**
 
-### Resource Allocation Recommendation
-- **Sarah:** 80% time on Beta Ltd negotiation, 20% on Unknown Co cleanup
-- **John:** 70% time on Acme Corp budget discussion, 30% on Delta Inc re-qualification
-- **Mike:** 100% focus on Omega SA discovery and relationship building
+Budget concerns combined with a cautious sentiment and 10 days of silence is a yellow flag that needs to be resolved *this week* -- not next.
+
+Actions this week:
+1. **Today (Apr 1) -- John to send a targeted re-engagement email** addressing budget directly. Suggested angle: offer a revised proposal with a phased payment structure or a stripped-down Tier 1 scope at $35K to remove the budget objection.
+2. **By Apr 3 -- Secure a 30-minute call.** Force a binary answer: *"Is budget approval in place for a decision before April 15, or do we need to adjust scope/timeline?"*
+3. **By Apr 8 -- Decision checkpoint.** If budget is confirmed: push for signed agreement by Apr 13. If NOT confirmed: immediately re-forecast close date to May.
+
+**PRIORITY 3 -- Omega SA | $75,000 | Close: April 20 | Owner: Mike**
+
+This close date needs immediate re-evaluation. Zero meetings held. 15 days since last contact. "Long sales cycle expected" note directly contradicts the April 20 close date.
+
+Actions this week:
+1. **By Apr 2 -- Mike to re-engage with a specific meeting request.** Manufacturing buyers in EU often have formal procurement cycles -- Mike needs to understand *where Omega SA is in their internal process*.
+2. **By Apr 4 -- CRM update required.** After re-engagement, Mike must update the close date to reflect reality. If Omega SA confirms a long sales cycle, move close date to June-July and adjust probability to 30-35%.
+3. **By Apr 7 -- First meeting must be booked.** Zero meetings at Proposal stage in manufacturing with a long-cycle note is a data contradiction.
+
+**PRIORITY 4 -- Unknown Co | $45,000 | Close: MISSING | Owner: Sarah**
+
+This deal cannot be worked until data is remediated. Maximum risk score (1.0), four data quality flags, 40 days of silence. This is a CRM liability.
+
+**PRIORITY 5 -- Delta Inc | $30,000 | Close: May 1 | Owner: John**
+
+Low-pressure re-engagement only. John sends a single email by Apr 3 with a qualifying question. Do not invest more than 1 hour. Beta Ltd and Acme Corp represent 7x the adjusted value.
+
+### Forecast Integrity Note
+
+**Current active pipeline (April closes): ~$188K nominal.**
+Realistically, approximately **$55K-$70K** is credible for April close based on deal health:
+- Beta Ltd ($96K EV) is the only high-confidence April close.
+- Acme Corp ($30K EV) is possible but budget-dependent.
+- Omega SA ($37.5K EV) should likely be **removed from April forecast** entirely pending Mike's engagement this week.
 
 ```
-  planner 348→77 | analyzer 136→55 | synthesizer 843→767 | $0.0175
+  planner 349→88 | analyzer 136→60 | synthesizer 854→2603 | $0.0443
 ```
 
 ---
@@ -85,49 +96,83 @@ Based on weighted business impact (deal size x probability / risk score) and urg
 
 **Output:**
 
-## Pipeline Risk Analysis: $172,000 in Immediate Jeopardy
+## Pipeline Value at Risk -- April 1, 2026
 
-**Total Pipeline Value at Risk: $172,000** (54% of $320,000 total pipeline)
+### Executive Summary
 
-### CRITICAL RISK - Immediate Action Required
+| Metric | Value |
+|---|---|
+| **Total Pipeline (Gross)** | $320,000 |
+| **Weighted Pipeline (Probability-Adjusted)** | $178,500 |
+| **Pipeline Value at Risk** | **$143,500** (44.8% of gross) |
+| **Deals Flagged as High Risk** | 3 of 5 |
 
-**1. Omega SA - $75,000 (Risk Score: 0.61)**
-- **Risk Factor**: 15 days no contact + zero meetings despite Proposal stage
-- **Action**: Mike must schedule face-to-face meeting within 48 hours. Deal is stalling with only 25 days to close date (4/20).
-- **Specific Next Step**: Book on-site visit by Thursday 1/16 to re-engage Manufacturing decision makers.
+### How "Value at Risk" Is Calculated
 
-**2. Delta Inc - $30,000 (Risk Score: 0.707)**
-- **Risk Factor**: 25 days stale contact + unclear use case in Discovery
-- **Action**: John needs to qualify out or re-engage immediately. Discovery stage deals shouldn't go cold this long.
-- **Specific Next Step**: Send breakup email by COB today - either they respond with meeting availability or remove from pipeline.
+For each deal: **Amount x Risk Score = Value at Risk**
 
-### HIGH RISK - Address This Week
+This reflects dollars exposed to loss based on compounded risk signals (low probability, stale contacts, data quality gaps, sentiment, engagement depth).
 
-**3. Unknown Co - $45,000 (Risk Score: 1.0)**
-- **Risk Factor**: Missing critical data + 40 days stale + zero meetings
-- **Action**: Sarah must clean this record within 24 hours or remove from pipeline entirely.
-- **Specific Next Step**: If legitimate opportunity, update stage/close date and book discovery call by Friday. Otherwise, mark as lost.
+### Deal-by-Deal Risk Breakdown
 
-**4. Acme Corp - $50,000 (Risk Score: 0.25)**
-- **Risk Factor**: Budget concerns + 10 days since last contact approaching close date
-- **Action**: John needs budget qualification call this week to address pricing objections.
-- **Specific Next Step**: Schedule CFO inclusion call by January 20th to discuss budget approval process.
+**Priority 1 -- Unknown Co | $45,000 | Risk Score: 1.0**
+**Value at Risk: $45,000 (100% of deal value)**
 
-### Data Quality Impact on Risk
-- **$75,000 at risk** due to stale contact patterns (Omega SA + Delta Inc)
-- **$45,000 at risk** due to missing critical deal data (Unknown Co)
-- **Clean deals** (Beta Ltd) show 6.7% risk score - use as benchmark
+This deal is in complete data failure. Four simultaneous data quality flags, zero meetings, one email thread, and last contact 40 days ago. At probability 0.4, even the base weighted value ($18,000) is likely overstated.
 
-### Immediate Actions - Next 48 Hours
-1. **Mike**: Call Omega SA Manufacturing contact directly - don't email
-2. **Sarah**: Audit Unknown Co record completely or remove from pipeline
-3. **John**: Send Delta Inc breakup email sequence starting today
-4. **John**: Schedule Acme Corp budget qualification before weekend
+- **By April 3:** Sarah to audit this record in CRM -- determine if a real company exists behind "Unknown Co." If no valid account is identified within 48 hours, move to Dead/Disqualified stage.
+- **By April 3:** RevOps to check for duplicate records; suppress from forecast until resolved.
 
-**Expected Impact**: Addressing these 4 deals could secure or properly qualify $200,000 in pipeline value within one week.
+**Priority 2 -- Omega SA | $75,000 | Risk Score: 0.61**
+**Value at Risk: $45,750** -- largest single value at risk in the portfolio.
+
+Proposal stage with April 20 close date -- 19 days away -- yet zero meetings and last contact 15 days ago. "Long sales cycle expected" is directly contradicted by the close date.
+
+- **By April 3:** Mike must get a live meeting on the calendar before April 10. If Omega SA won't commit, push close date to June and reduce probability to 0.3.
+- **Forecast impact:** Until a meeting is confirmed, recommend treating this as $22,500 (0.3 probability floor) rather than the current $37,500.
+
+**Priority 3 -- Delta Inc | $30,000 | Risk Score: 0.707**
+**Value at Risk: $21,210**
+
+25 days stale contact. One meeting, two email threads, "unclear use case." This deal was never properly qualified.
+
+- **By April 3:** John reaches out directly -- phone call preferred. Confirm the use case and assess whether there is a real buying initiative.
+- **By April 7:** If no response, move probability to 0.15 and flag for pipeline review.
+
+**Priority 4 -- Acme Corp | $50,000 | Risk Score: 0.25**
+**Value at Risk: $12,500**
+
+Moderate risk, but April 15 close date is 14 days away. Budget concerns are the primary signal.
+
+- **By April 4:** John calls Acme Corp to address the budget concern head-on with a concrete option (phased payment, reduced scope, multi-year pricing).
+- **By April 8:** If unresolved, adjust probability to 0.4 and push close date to May 15.
+
+**Priority 5 -- Beta Ltd | $120,000 | Risk Score: 0.067**
+**Value at Risk: $8,040**
+
+Lowest risk in the portfolio. Strong engagement, positive sentiment. The only threat is process/procurement delay, not deal conviction.
+
+- **By April 4:** Sarah confirms exact contract/signature process. April 10 is 9 days away; any procurement delay could push to May.
+
+### Consolidated Risk Register
+
+| # | Deal | Amount | Risk Score | $ at Risk | Primary Risk Driver | Urgency |
+|---|------|--------|------------|-----------|--------------------|----|
+| 1 | Unknown Co | $45,000 | 1.00 | **$45,000** | Data integrity failure | Immediate |
+| 2 | Omega SA | $75,000 | 0.61 | **$45,750** | Zero meetings, stale contact | This week |
+| 3 | Delta Inc | $30,000 | 0.707 | **$21,210** | Stale contact, unclear use case | This week |
+| 4 | Acme Corp | $50,000 | 0.25 | **$12,500** | Budget objection, closing soon | By April 4 |
+| 5 | Beta Ltd | $120,000 | 0.067 | **$8,040** | Procurement timing only | Monitor |
+| | **Total** | **$320,000** | | **$143,500** | | |
+
+### Immediate Actions for RevOps
+1. **Pull Unknown Co from April forecast today** until Sarah resolves the account identity by April 3. This deal is currently inflating weighted pipeline by ~$18,000.
+2. **Require John to log CRM updates on both Acme Corp and Delta Inc by April 4** -- both deals have the same owner and both are showing engagement gaps at critical stages.
+3. **Flag Omega SA for deal review** in the next sales standup: a $75K Proposal with zero meetings and a 19-day close date is a forecast integrity issue, not just a risk signal.
+4. **If Beta Ltd closes April 10 as forecasted**, April actual vs. forecast performance will hinge entirely on Acme Corp ($30K expected) with everything else at elevated risk of slipping to Q2.
 
 ```
-  planner 348→70 | analyzer 136→55 | synthesizer 836→639 | $0.0154
+  planner 349→85 | analyzer 136→60 | synthesizer 873→2043 | $0.0359
 ```
 
 ---
@@ -145,14 +190,14 @@ Goodbye.
 
 **Independent queries:** Each query is analyzed independently. The second query ("total pipeline value at risk?") gets its own planner analysis type (`risk`), its own sentiment classification, and a tailored synthesis. There is no conversation history or multi-turn context -- the efficiency gain is purely at the data layer.
 
+**Model tiering:** The planner and synthesizer use Claude Sonnet 4.6 for complex reasoning. The analyzer's sentiment classification uses Claude Haiku 4.5 -- a simpler, cheaper model appropriate for a straightforward classification task.
+
 **Cost for this session:**
 
 | | Query 1 | Query 2 | Session Total |
 |---|---------|---------|---------------|
-| Input tokens | 1,327 | 1,320 | 2,647 |
-| Output tokens | 899 | 764 | 1,663 |
-| Cost | $0.0175 | $0.0154 | $0.0329 |
+| Input tokens | 1,339 | 1,358 | 2,697 |
+| Output tokens | 2,751 | 2,188 | 4,939 |
+| Cost | $0.0443 | $0.0359 | $0.0802 |
 
-Two queries for ~$0.03 with zero redundant data loading. In the single-query `ask` mode, this would have required two separate Drive downloads and ingestion passes.
-
-Model: `claude-sonnet-4-20250514`
+Two queries for ~$0.08 with zero redundant data loading. In the single-query `ask` mode, this would have required two separate Drive downloads and ingestion passes.

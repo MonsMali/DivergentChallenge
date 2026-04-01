@@ -11,9 +11,19 @@ from src.config import ANTHROPIC_API_KEY, DEFAULT_MODEL
 
 logger = logging.getLogger(__name__)
 
-# Pricing per million tokens (Claude Sonnet 4)
-_INPUT_COST_PER_MTOK = 3.0
-_OUTPUT_COST_PER_MTOK = 15.0
+# Pricing per million tokens by model family
+_PRICING = {
+    "sonnet": {"input": 3.0, "output": 15.0},
+    "haiku": {"input": 0.8, "output": 4.0},
+}
+
+
+def _get_pricing(model: str) -> tuple[float, float]:
+    if "haiku" in model:
+        p = _PRICING["haiku"]
+    else:
+        p = _PRICING["sonnet"]
+    return p["input"], p["output"]
 
 _client: anthropic.Anthropic | None = None
 
@@ -37,15 +47,16 @@ def call_llm(
     client = _get_client()
     response = client.messages.create(
         model=model,
-        max_tokens=2048,
+        max_tokens=4096,
         system=system_prompt,
         messages=[{"role": "user", "content": user_prompt}],
     )
     text = response.content[0].text
     input_tokens = response.usage.input_tokens
     output_tokens = response.usage.output_tokens
-    cost = (input_tokens * _INPUT_COST_PER_MTOK / 1_000_000) + (
-        output_tokens * _OUTPUT_COST_PER_MTOK / 1_000_000
+    input_cost, output_cost = _get_pricing(model)
+    cost = (input_tokens * input_cost / 1_000_000) + (
+        output_tokens * output_cost / 1_000_000
     )
     usage = {
         "input_tokens": input_tokens,

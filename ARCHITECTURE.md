@@ -32,7 +32,7 @@ User Query
 
 ## Tools Used
 
-- **anthropic SDK** - Direct Claude Sonnet 4 API access; thin wrapper, no framework needed for 3 LLM calls per query
+- **anthropic SDK** - Direct API access to Claude Sonnet 4.6 (planning + synthesis) and Haiku 4.5 (sentiment classification); thin wrapper, no framework needed for 3 LLM calls per query
 - **pandas** - CSV parsing, DataFrame merges, null handling for tabular deal data
 - **pydantic** - Typed data contracts between pipeline steps; schema validation at each boundary
 - **click** - CLI framework for commands (`ask`, `chat`, `status`), options, and flags
@@ -62,13 +62,13 @@ The source layer is abstracted from the pipeline. `sources/gdrive.py` authentica
 
 ## Token Usage & Cost
 
-Measured across 3 example queries (Claude Sonnet 4, `claude-sonnet-4-20250514`):
+Measured across 3 example queries (Sonnet 4.6 for planner/synthesizer, Haiku 4.5 for analyzer):
 
-| Step | Avg Input | Avg Output | Avg Cost |
-|------|-----------|------------|----------|
-| Planner | 347 | 71 | $0.0021 |
-| Analyzer | 136 | 55 | $0.0012 |
-| Synthesizer | 836 | 660 | $0.0124 |
-| **Total** | **1,319** | **786** | **$0.016** |
+| Step | Model | Avg Input | Avg Output | Avg Cost |
+|------|-------|-----------|------------|----------|
+| Planner | Sonnet 4.6 | 348 | 104 | $0.0026 |
+| Analyzer | Haiku 4.5 | 136 | 60 | $0.0003 |
+| Synthesizer | Sonnet 4.6 | 857 | 2,329 | $0.0375 |
+| **Total** | | **1,341** | **2,493** | **$0.040** |
 
-Key optimizations: schema summaries (not raw data) sent to LLM, batched sentiment classification (1 call for all notes), concise role-specific system prompts, deterministic pre-filtering before LLM reasoning. At production scale: route classification to Haiku (12x cheaper), enable prompt caching, use Batch API for scheduled runs.
+Key optimizations: schema summaries (not raw data) sent to LLM, batched sentiment classification routed to Haiku 4.5 (1 call for all notes, ~4x cheaper than Sonnet), concise role-specific system prompts, deterministic pre-filtering before LLM reasoning. At production scale: enable prompt caching, use Batch API for scheduled runs.

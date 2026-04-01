@@ -5,6 +5,7 @@ venv/
 
 # Internal working documents
 CLAUDE.md
+INTERVIEW_PREP.md
 .claude/
 
 # Python
@@ -31,3 +32,6 @@ tmp/
 # OS
 .DS_Store
 Thumbs.db
+
+# Challenge PDF
+Technical Challenge - Agentic AI Engineer.pdf

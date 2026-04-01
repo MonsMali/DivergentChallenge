@@ -46,11 +46,11 @@ pip install -e .
 cp .env.example .env
 # Edit .env and set ANTHROPIC_API_KEY=sk-ant-...
 
-# Single query mode
-python -m src.cli ask "Which deals should I focus on this week?"
-
-# Interactive copilot mode (ingests once, ask multiple questions)
+# Run the copilot (interactive mode -- recommended)
 python -m src.cli chat
+
+# Or run a single query
+python -m src.cli ask "Which deals should I focus on this week?"
 
 # Health check (no API key needed)
 python -m src.cli status
@@ -159,7 +159,7 @@ User Query
 
 | Tool | Purpose | Why This Choice |
 |------|---------|-----------------|
-| **anthropic SDK** | Direct API access to Claude Sonnet 4 | The workflow has exactly 3 LLM calls per query. A thin wrapper is cleaner and more transparent than LangChain/LlamaIndex, which add framework overhead without value for this use case. |
+| **anthropic SDK** | Direct API access to Claude Sonnet 4.6 and Haiku 4.5 | The workflow has exactly 3 LLM calls per query. A thin wrapper is cleaner and more transparent than LangChain/LlamaIndex, which add framework overhead without value for this use case. Sonnet handles planning and synthesis; Haiku handles sentiment classification. |
 | **pandas** | Data manipulation and merging | Standard, battle-tested library for tabular data. Handles CSV parsing, joins, and null value handling out of the box. |
 | **pydantic** | Typed data contracts between pipeline steps | Ensures data integrity at each boundary. Makes the orchestration self-documenting and catches schema violations early. |
 | **click** | CLI framework | Lightweight, well-documented, no magic. Supports commands, options, and flags with minimal boilerplate. |
@@ -239,16 +239,16 @@ Each module only needs to implement a function that returns a directory path con
 
 ### Actual Token Usage (from example runs)
 
-Each query costs approximately **$0.015-0.017** with Claude Sonnet 4:
+Each query costs approximately **$0.035-0.045** with Claude Sonnet 4.6 (planner + synthesizer) and Haiku 4.5 (analyzer):
 
-| Step | Avg Input Tokens | Avg Output Tokens | Avg Cost |
-|------|-----------------|-------------------|----------|
-| Planner | ~347 | ~71 | $0.0021 |
-| Analyzer (sentiment) | ~136 | ~55 | $0.0012 |
-| Synthesizer | ~836 | ~660 | $0.0124 |
-| **Total per query** | **~1,319** | **~786** | **~$0.016** |
+| Step | Model | Avg Input Tokens | Avg Output Tokens | Avg Cost |
+|------|-------|-----------------|-------------------|----------|
+| Planner | Sonnet 4.6 | ~348 | ~104 | $0.0026 |
+| Analyzer (sentiment) | Haiku 4.5 | ~136 | ~60 | $0.0003 |
+| Synthesizer | Sonnet 4.6 | ~857 | ~2,329 | $0.0375 |
+| **Total per query** | | **~1,341** | **~2,493** | **~$0.040** |
 
-The synthesizer dominates cost (78%) because it produces the longest output. The planner and analyzer are highly efficient.
+The synthesizer dominates cost (93%) because it produces the longest, most detailed output. The analyzer uses Haiku 4.5 for sentiment classification -- a simple task that doesn't require a frontier model, reducing its cost by ~4x compared to routing through Sonnet.
 
 ### Optimization Strategies Implemented
 
@@ -262,7 +262,7 @@ The synthesizer dominates cost (78%) because it produces the longest output. The
 
 ### Production-Scale Strategies (Not Implemented)
 
-- **Route classification to Claude Haiku**: Sentiment classification is a simple task. At scale, routing it to Haiku ($0.25/MTok input vs $3/MTok for Sonnet) would reduce analyzer cost by 12x.
+- **Route more tasks to Haiku**: Sentiment classification already uses Haiku 4.5. At scale, query planning could also be routed to Haiku for further cost reduction.
 - **Prompt caching**: System prompts are identical across queries. Anthropic's prompt caching feature would eliminate re-processing ~200 tokens of system prompt per call.
 - **Batch API**: For non-interactive runs (e.g., daily scheduled analysis), the Anthropic Batch API offers 50% cost reduction with 24-hour turnaround.
 
@@ -276,42 +276,55 @@ The synthesizer receives today's date and reasons about close dates relative to 
 
 Full examples with pipeline output are in the `examples/` directory:
 
+- [`example_4_chat.md`](examples/example_4_chat.md) - **Interactive chat session with two queries (recommended starting point)**
 - [`example_1_focus.md`](examples/example_1_focus.md) - "Which deals should I focus on this week?"
 - [`example_2_risk.md`](examples/example_2_risk.md) - "What deals look at risk?"
 - [`example_3_weekly.md`](examples/example_3_weekly.md) - "What actions should we take this week?"
-- [`example_4_chat.md`](examples/example_4_chat.md) - Interactive chat session with two queries (demonstrates cached ingestion)
 
-### Sample Output (abbreviated)
+### Quick Demo
 
-**Query:** *"Which deals should I focus on this week?"*
+The fastest way to see the system in action is `python -m src.cli chat`. Data loads once from Google Drive, then you can ask multiple questions:
 
 ```
-Priority 1: Beta Ltd ($120K) - Sarah
-Schedule final contract review meeting by Wednesday. 80% probability, positive
-sentiment, closes April 10th. Confirm pricing, get legal review started,
-prepare DocuSign package.
+  ✓ 5 deals loaded from Google Drive
+╭──────────────── RevOps Copilot ─────────────────╮
+│ 5 deals loaded — 2 complete, 3 with gaps        │
+│ Type exit to quit                                │
+╰─────────────────────────────────────────────────╯
 
-Priority 2: Acme Corp ($50K) - John
-Address budget concerns with ROI presentation by Thursday. 10-day silence on
-deal with budget hesitation needs immediate attention.
+> Which deals should I focus on this week?
 
-Priority 5: Unknown Co ($45K) - Sarah
-Data cleanup required before any sales action. Missing critical data (stage,
-close date, account info). Spend 30 minutes updating CRM or mark as dead deal.
+╭──────────────── Recommendation ─────────────────╮
+│                                                  │
+│  PRIORITY 1 — Beta Ltd ($120K) - Sarah           │
+│  Close date April 10 (9 days). Send redlined     │
+│  contract today, schedule live call by Apr 3,    │
+│  confirm signature path by Apr 7.                │
+│                                                  │
+│  PRIORITY 2 — Acme Corp ($50K) - John            │
+│  Budget concerns + 10-day silence. Call today,   │
+│  address budget head-on with phased payment or   │
+│  reduced scope option.                           │
+│                                                  │
+│  ...                                             │
+╰─────────────────────────────────────────────────╯
+
+> What's the total pipeline value at risk?
+  ...
 ```
 
 ---
 
 ## Future Feature Ideas
 
-### 1. Scheduled Monitoring and Alerts
+### 1. Cross-Portfolio Intelligence
 
-Run the pipeline daily on a cron job, diff against previous state, and push alerts via Slack or email when:
-- Deals go cold (contact gap exceeds threshold)
-- Pipeline velocity drops below historical average
-- Close dates approach with low probability
+Extend the system to analyze deals across multiple portfolio companies simultaneously, surfacing patterns and benchmarks that no single-company view can reveal:
+- "SaaS portfolio companies close 40% faster when they have 3+ meetings before Proposal stage"
+- "Your EU deals have a 2x longer sales cycle than US deals -- adjust close date expectations"
+- "Three portfolio companies have stale pipelines this week -- here are the common patterns"
 
-**Business value:** Proactive risk management instead of reactive querying. Sales managers get notified of problems before they become critical, reducing deal slippage.
+**Business value:** Portfolio-level insight is the PE fund's core competitive advantage. Individual company RevOps is useful; cross-company pattern recognition across a fund's holdings is strategic intelligence that informs both operational support and investment decisions.
 
 ### 2. CRM Write-back via MCP (Model Context Protocol)
 

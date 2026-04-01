@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 
+from src.config import FAST_MODEL
 from src.llm import call_llm_json
 from src.models import AnalysisPlan, EnrichedDeal
 
@@ -62,7 +63,7 @@ def _classify_sentiment(deals: list[EnrichedDeal]) -> tuple[dict[str, str], dict
     user_prompt = f"Call notes:\n{notes_text}"
 
     try:
-        data, usage = call_llm_json(SENTIMENT_SYSTEM_PROMPT, user_prompt)
+        data, usage = call_llm_json(SENTIMENT_SYSTEM_PROMPT, user_prompt, model=FAST_MODEL)
         # Normalize keys to lowercase for matching
         return {k.strip().lower(): v for k, v in data.items()}, usage
     except Exception as e:
