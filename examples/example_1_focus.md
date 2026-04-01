@@ -4,7 +4,7 @@
 
 **Command:** `python -m src.cli ask "Which deals should I focus on this week?" --verbose`
 
-*Output captured on March 31, 2026. Date-relative language in the synthesis reflects that run date.*
+*Output captured on April 1, 2026.*
 
 ---
 
@@ -16,9 +16,8 @@
 --- Planner ---
   Type: priority
   Deals: all
-  Reasoning: To determine which deals to focus on this week, I need to analyze all
-  deals by priority considering factors like close dates, deal amounts, probabilities,
-  and stages.
+  Reasoning: Need to analyze all deals to prioritize based on close dates,
+  stages, probabilities, and data quality issues to determine weekly focus.
 
 --- Analyzer ---
   #1 Acme Corp: risk=0.25 sentiment=cautious
@@ -32,55 +31,67 @@
 
 ## System Output
 
-### Priority Ranking for This Week
+# Weekly Deal Focus Prioritization
 
-**Focus Order (by business impact & urgency):**
+## Priority Ranking by Business Impact
 
-1. **Beta Ltd** - $120K deal (Expected Value: $96K)
-2. **Acme Corp** - $50K deal (Expected Value: $30K)
-3. **Omega SA** - $75K deal (Expected Value: $37.5K)
-4. **Delta Inc** - $30K deal (Expected Value: $9K)
-5. **Unknown Co** - $45K deal (Expected Value: $18K)
+1. **Beta Ltd - $120,000** (Expected value: $96K)
+2. **Acme Corp - $50,000** (Expected value: $30K)
+3. **Omega SA - $75,000** (Expected value: $37.5K)
+4. **Delta Inc - $30,000** (Expected value: $9K)
+5. **Unknown Co - $45,000** (Expected value: $18K)
 
-### Specific Actions Required
+## Specific Actions by Deal
 
-#### IMMEDIATE (This Week)
+### IMMEDIATE PRIORITY: Beta Ltd ($120,000)
+**Owner: Sarah | Close: April 10 (5 days out)**
+- **This Week Actions:**
+  - Schedule contract review meeting by Wednesday 4/5
+  - Prepare final pricing concessions (budget max 5% discount = $6K)
+  - Get legal review started Monday 4/3
+  - Daily check-ins with Sarah through close date
+- **Why Critical:** 80% probability, positive sentiment, closes in 5 days, highest revenue impact
 
-**Beta Ltd ($120,000)** - Sarah
-- **Action**: Schedule final contract review meeting by Wednesday
-- **Why**: 80% probability, positive sentiment, closes April 10th (6 days)
-- **Risk**: Minimal (0.067 score) but fast close timeline creates execution risk
-- **Next steps**: Confirm pricing, get legal review started, prepare DocuSign package
+### HIGH PRIORITY: Acme Corp ($50,000)
+**Owner: John | Close: April 15 (10 days out)**
+- **This Week Actions:**
+  - John must reconnect by Tuesday 4/4 (10-day gap is dangerous)
+  - Address budget concerns with ROI calculator/case study
+  - Propose payment plan options to overcome budget objection
+  - Schedule stakeholder meeting to advance from Proposal stage
+- **Why Important:** Decent probability (60%), manageable risk, closes soon
 
-**Acme Corp ($50,000)** - John
-- **Action**: Address budget concerns with ROI presentation by Thursday
-- **Why**: 10-day silence on $50K deal with budget hesitation needs immediate attention
-- **Risk**: Moderate (0.25 score), cautious sentiment suggests price sensitivity
-- **Next steps**: Prepare cost-benefit analysis, explore payment terms options
+### RECOVERY NEEDED: Omega SA ($75,000)
+**Owner: Mike | Data Quality Issues**
+- **This Week Actions:**
+  - Mike needs immediate outreach - 15 days silent is critical
+  - **Red flag:** Zero meetings scheduled despite $75K opportunity
+  - Book discovery call by Thursday 4/6 or risk losing deal
+  - Update CRM with proper contact cadence plan
+- **Data Issue:** High risk score (0.61) + no meetings = process breakdown
 
-#### SECONDARY PRIORITY
+### RE-ENGAGEMENT: Delta Inc ($30,000)
+**Owner: John | 25 Days Stale**
+- **This Week Actions:**
+  - John must call by Wednesday 4/5 (stale_contact flag critical)
+  - Qualify use case properly - "unclear use case" needs resolution
+  - Either advance to Proposal or disqualify by Friday 4/7
+  - Don't let this drift further into May
 
-**Omega SA ($75,000)** - Mike
-- **Action**: Mike must schedule discovery call this week (15-day gap is critical)
-- **Why**: High value but zero meetings completed, stale contact flagged
-- **Risk**: High (0.61 score) due to no face-to-face engagement
+### DATA CLEANUP: Unknown Co ($45,000)
+**Owner: Sarah | Multiple Missing Fields**
+- **This Week Actions:**
+  - Sarah must update: Stage, Close Date, Industry, Region by Tuesday 4/4
+  - 40-day contact gap requires immediate phone call Monday 4/3
+  - If no response by Friday 4/7, move to "Lost" status
+  - **Critical:** 1.0 risk score indicates deal may already be dead
 
-#### LOWER PRIORITY
+## Weekly Revenue at Risk
+- **High Confidence Close:** $96K (Beta Ltd)
+- **Medium Risk:** $67.5K (Acme + Omega combined expected value)
+- **Data Quality Issues:** $63K (Unknown Co + Delta Inc)
 
-**Delta Inc ($30,000)** - John
-- **Action**: Re-engage with specific use case examples by Friday
-- **Why**: 25-day silence has killed momentum on early-stage deal
-
-**Unknown Co ($45,000)** - Sarah
-- **Action**: Data cleanup required before any sales action
-- **Why**: Missing critical data (stage, close date, account info) makes this unworkable
-- **Recommendation**: Spend 30 minutes updating CRM or mark as dead deal
-
-### Weekly Revenue Forecast
-
-- **High confidence**: Beta Ltd ($96K expected)
-- **Medium confidence**: Acme Corp ($30K expected)
-- **Total realistic pipeline**: $126K for next 30 days
+**Recommendation:** Focus 60% of time on Beta Ltd close, 30% on Acme budget resolution, 10% on data cleanup for the remaining deals.
 
 ---
 
@@ -88,9 +99,9 @@
 
 | Step | Input Tokens | Output Tokens | Cost |
 |------|-------------|---------------|------|
-| Planner | 348 | 75 | $0.002169 |
+| Planner | 348 | 69 | $0.002079 |
 | Analyzer | 136 | 55 | $0.001233 |
-| Synthesizer | 841 | 644 | $0.012183 |
-| **Total** | **1,325** | **774** | **$0.015585** |
+| Synthesizer | 835 | 813 | $0.014700 |
+| **Total** | **1,319** | **937** | **$0.018012** |
 
 Model: `claude-sonnet-4-20250514`

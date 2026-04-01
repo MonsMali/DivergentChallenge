@@ -4,7 +4,7 @@
 
 **Command:** `python -m src.cli ask "What deals look at risk?" --verbose`
 
-*Output captured on March 31, 2026. Date-relative language in the synthesis reflects that run date.*
+*Output captured on April 1, 2026.*
 
 ---
 
@@ -16,8 +16,8 @@
 --- Planner ---
   Type: risk
   Deals: all
-  Reasoning: Analyzing all deals to identify risk indicators such as low probability,
-  data quality issues, stale contacts, and stage progression concerns.
+  Reasoning: Need to analyze all deals to identify risk factors like low
+  probability, data quality issues, stale stages, or approaching close dates.
 
 --- Analyzer ---
   #1 Acme Corp: risk=0.25 sentiment=cautious
@@ -31,59 +31,52 @@
 
 ## System Output
 
-### DEALS AT RISK - PRIORITY RANKING
+# Deals at Risk Analysis
 
-Based on the data, **3 of 5 deals are at significant risk**, representing $150K in pipeline jeopardy.
+Based on risk scores, data quality, and business impact, here are the deals requiring immediate attention:
 
----
+## Priority Ranking (by urgency and potential loss)
 
-#### CRITICAL RISK - IMMEDIATE ACTION REQUIRED
+**1. CRITICAL: Unknown Co ($45,000)** - Risk Score: 1.0
+**2. HIGH: Delta Inc ($30,000)** - Risk Score: 0.707
+**3. MEDIUM: Omega SA ($75,000)** - Risk Score: 0.61
+**4. LOW: Acme Corp ($50,000)** - Risk Score: 0.25
 
-**#1: Delta Inc - $30K (Risk Score: 0.707)**
-- **Issues:** 25 days since last contact, unclear use case, only 1 meeting
-- **Actions for John:**
-  - Call Delta Inc **by Friday** to re-engage and clarify their specific use case
-  - Schedule discovery call within 7 days or mark deal as dead
-  - If they respond, focus on quantifying their pain points with concrete examples
+## Immediate Actions Required
 
-**#2: Unknown Co - $45K (Risk Score: 1.0)**
-- **Issues:** Missing stage, missing close date, 40 days stale, zero meetings, no account match
-- **Actions for Sarah:**
-  - **Close this deal as lost immediately** - it's been abandoned for 40+ days
-  - Audit similar deals in your pipeline for data integrity issues
-  - If there's genuine opportunity, treat as new lead and restart qualification process
+### CRITICAL - Unknown Co ($45,000)
+**Issues:** Complete data breakdown - missing stage, close date, account info, 40-day contact gap
+**Actions:**
+- **Sarah: Immediate outreach by EOD today** - Call + email to re-establish contact
+- **Data cleanup by Friday 1/17** - Populate missing stage, close date, industry, region
+- **Decision point by 1/24:** If no response after 7 days, move to "Lost" and focus efforts elsewhere
 
----
+### HIGH RISK - Delta Inc ($30,000)
+**Issues:** 25-day silence, unclear use case, early discovery stage with May close date
+**Actions:**
+- **John: Contact by Thursday 1/16** - Schedule discovery call to clarify use case and budget authority
+- **Qualify or disqualify by 1/31** - Either advance to qualified opportunity or deprioritize
+- **If re-engaged:** Move probability to 0.5+ or reduce to 0.1 based on findings
 
-#### MODERATE RISK - ACTION WITHIN 1 WEEK
+### MEDIUM RISK - Omega SA ($75,000)
+**Issues:** 15-day contact gap, zero meetings held, long sales cycle warning
+**Actions:**
+- **Mike: Schedule face-to-face or video meeting by 1/22** - No more email-only engagement
+- **Establish project timeline and decision criteria** during first meeting
+- **If no meeting acceptance:** Reduce probability to 0.2 and focus on higher-priority deals
 
-**#3: Omega SA - $75K (Risk Score: 0.61)**
-- **Issues:** 15 days since contact, zero meetings scheduled, expecting long sales cycle
-- **Actions for Mike:**
-  - Schedule face-to-face or video meeting **within 5 business days**
-  - Address the "long sales cycle" concern head-on - propose pilot program
-  - Set clear next steps with defined timeline before April 20th close date
+### LOW RISK - Acme Corp ($50,000)
+**Issues:** Budget concerns but otherwise healthy engagement
+**Actions:**
+- **John: Address budget concerns by 1/20** - Present ROI analysis or discuss phased implementation
+- **Maintain current priority** - 10-day gap is acceptable given strong engagement history
 
----
+## Revenue Impact Summary
+- **Total at-risk revenue:** $200,000 across 4 deals
+- **Immediate attention needed:** $120,000 (Unknown Co + Delta Inc + Omega SA)
+- **Expected recovery with actions:** ~$85,000 (assuming 50% success rate on interventions)
 
-#### MONITORING REQUIRED
-
-**#4: Acme Corp - $50K (Risk Score: 0.25)**
-- **Issues:** Budget concerns noted, moderate engagement
-- **Actions for John:**
-  - Address budget concerns within 2 weeks by presenting ROI calculator
-  - Schedule follow-up meeting to discuss budget-friendly options before April 15th
-
----
-
-### IMMEDIATE PIPELINE ACTIONS (This Week):
-1. **Sarah:** Close Unknown Co deal as lost today
-2. **John:** Call Delta Inc by Friday or lose the deal
-3. **Mike:** Book meeting with Omega SA by next Wednesday
-4. **Pipeline cleanup:** Remove stale deals >30 days without clear next steps
-
-**Total at-risk revenue:** $150K (Delta + Unknown + Omega)
-**Recoverable with immediate action:** $105K (Delta + Omega)
+**Note:** Beta Ltd ($120,000) shows no risk factors - maintain current course with 2-day contact cadence through close on 4/10.
 
 ---
 
@@ -93,7 +86,7 @@ Based on the data, **3 of 5 deals are at significant risk**, representing $150K 
 |------|-------------|---------------|------|
 | Planner | 345 | 68 | $0.002055 |
 | Analyzer | 136 | 55 | $0.001233 |
-| Synthesizer | 831 | 656 | $0.012333 |
-| **Total** | **1,312** | **779** | **$0.015621** |
+| Synthesizer | 831 | 678 | $0.012663 |
+| **Total** | **1,312** | **801** | **$0.015951** |
 
 Model: `claude-sonnet-4-20250514`

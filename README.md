@@ -266,6 +266,10 @@ The synthesizer dominates cost (78%) because it produces the longest output. The
 - **Prompt caching**: System prompts are identical across queries. Anthropic's prompt caching feature would eliminate re-processing ~200 tokens of system prompt per call.
 - **Batch API**: For non-interactive runs (e.g., daily scheduled analysis), the Anthropic Batch API offers 50% cost reduction with 24-hour turnaround.
 
+### Data Considerations
+
+The synthesizer receives today's date and reasons about close dates relative to when the system is run (e.g., flagging overdue deals). Contact recency (`last_contact_days`) is a static integer field in the dataset, not computed from activity timestamps. In a production system, this would be derived from actual CRM activity dates so it stays current automatically.
+
 ---
 
 ## Example Inputs and Outputs

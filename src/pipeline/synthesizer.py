@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import date
 
 from src.llm import call_llm
 from src.models import AnalysisPlan, EnrichedDeal
@@ -53,6 +54,7 @@ def synthesize(
     """
     deals_text = _format_deals_for_llm(deals)
     user_prompt = (
+        f"Today's date: {date.today().isoformat()}\n\n"
         f"User question: {query}\n\n"
         f"Analysis approach: {analysis_plan.analysis_type} — {analysis_plan.reasoning}\n\n"
         f"Deal data ({len(deals)} deals):\n\n{deals_text}"

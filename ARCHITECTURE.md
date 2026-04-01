@@ -2,7 +2,7 @@
 
 ## Overview
 
-RevOps Copilot is a Python CLI that ingests fragmented operational data (CSVs, text files) from Google Drive or local disk, runs it through a four-stage agentic pipeline, and produces actionable deal recommendations in response to natural language questions. Each stage deliberately chooses between deterministic logic and LLM reasoning based on whether the task requires interpretation.
+RevOps Copilot is a Python CLI that connects to Google Drive, ingests fragmented operational data (CSVs, text files), runs it through a four-stage agentic pipeline, and produces actionable deal recommendations in response to natural language questions. Each stage deliberately chooses between deterministic logic and LLM reasoning based on whether the task requires interpretation.
 
 ## Workflow
 
