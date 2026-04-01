@@ -14,7 +14,7 @@ For a detailed explanation of the architecture, workflow, tools used, and cost o
 
 ### Prerequisites
 
-- Python 3.11+
+- Python 3.11+ (tested on 3.12)
 - An Anthropic API key ([get one here](https://console.anthropic.com/))
 - Google Cloud service account with Drive API access (see step 2 below)
 
@@ -91,7 +91,8 @@ DivergentChallenge/
 └── examples/
     ├── example_1_focus.md
     ├── example_2_risk.md
-    └── example_3_weekly.md
+    ├── example_3_weekly.md
+    └── example_4_chat.md
 ```
 
 ---
