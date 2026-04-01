@@ -67,6 +67,16 @@ def call_llm(
     return text, usage
 
 
+def _strip_markdown_fences(text: str) -> str:
+    """Remove markdown code fences that models sometimes add around JSON."""
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.split("\n", 1)[1] if "\n" in cleaned else cleaned[3:]
+        if cleaned.endswith("```"):
+            cleaned = cleaned[:-3].strip()
+    return cleaned
+
+
 def call_llm_json(
     system_prompt: str,
     user_prompt: str,
@@ -79,15 +89,8 @@ def call_llm_json(
     )
     text, usage = call_llm(full_system, user_prompt, model)
 
-    # Strip markdown fences if the model wraps anyway
-    cleaned = text.strip()
-    if cleaned.startswith("```"):
-        cleaned = cleaned.split("\n", 1)[1] if "\n" in cleaned else cleaned[3:]
-        if cleaned.endswith("```"):
-            cleaned = cleaned[:-3].strip()
-
     try:
-        return json.loads(cleaned), usage
+        return json.loads(_strip_markdown_fences(text)), usage
     except json.JSONDecodeError:
         logger.warning("JSON parse failed, retrying with repair prompt")
         repair_prompt = (
@@ -97,15 +100,9 @@ def call_llm_json(
             "Please return ONLY the corrected valid JSON, nothing else."
         )
         text2, usage2 = call_llm(full_system, repair_prompt, model)
-        # Merge usage
         merged_usage = {
             "input_tokens": usage["input_tokens"] + usage2["input_tokens"],
             "output_tokens": usage["output_tokens"] + usage2["output_tokens"],
             "cost": round(usage["cost"] + usage2["cost"], 6),
         }
-        cleaned2 = text2.strip()
-        if cleaned2.startswith("```"):
-            cleaned2 = cleaned2.split("\n", 1)[1] if "\n" in cleaned2 else cleaned2[3:]
-            if cleaned2.endswith("```"):
-                cleaned2 = cleaned2[:-3].strip()
-        return json.loads(cleaned2), merged_usage
+        return json.loads(_strip_markdown_fences(text2)), merged_usage

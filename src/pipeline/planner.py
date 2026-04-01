@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 
+from src.config import FAST_MODEL
 from src.llm import call_llm_json
 from src.models import AnalysisPlan, EnrichedDeal
 
@@ -61,7 +62,7 @@ def plan(query: str, deals: list[EnrichedDeal]) -> tuple[AnalysisPlan, dict]:
     user_prompt = f"User question: {query}\n\nAvailable data:\n{schema_summary}"
 
     try:
-        data, usage = call_llm_json(SYSTEM_PROMPT, user_prompt)
+        data, usage = call_llm_json(SYSTEM_PROMPT, user_prompt, model=FAST_MODEL)
         analysis_plan = AnalysisPlan(**data)
     except Exception as e:
         logger.warning("Plan parsing failed (%s), using default plan", e)

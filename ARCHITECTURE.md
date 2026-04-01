@@ -15,7 +15,7 @@ User Query
 +----+-----+    Output: list[EnrichedDeal] + DataQualityReport
      |
      v
-+----------+    LLM: receives query + schema summary (not raw data).
++----------+    LLM (Haiku 4.5): receives query + schema summary (not raw data).
 | PLANNER  |    Output: AnalysisPlan (JSON) with analysis type + reasoning.
 +----+-----+
      |
@@ -25,7 +25,7 @@ User Query
 +----+-----+    Output: deals with risk_score + sentiment attached.
      |
      v
-+-------------+  LLM: generates prioritized, actionable recommendations
++-------------+  LLM (Sonnet 4.6): generates prioritized, actionable recommendations
 | SYNTHESIZER |  with specific deals, dollar amounts, and next steps.
 +-------------+  Output: natural language advisory text.
 ```
@@ -34,7 +34,7 @@ User Query
 
 | Tool | Purpose | Why This Choice |
 |------|---------|-----------------|
-| **anthropic SDK** | Direct API access to Claude Sonnet 4.6 and Haiku 4.5 | The workflow has exactly 3 LLM calls per query. A thin wrapper is cleaner and more transparent than LangChain/LlamaIndex, which add framework overhead without value for this use case. Sonnet handles planning and synthesis; Haiku handles sentiment classification. |
+| **anthropic SDK** | Direct API access to Claude Sonnet 4.6 and Haiku 4.5 | The workflow has exactly 3 LLM calls per query. A thin wrapper is cleaner and more transparent than LangChain/LlamaIndex, which add framework overhead without value for this use case. Sonnet handles synthesis (complex reasoning + NL generation); Haiku handles planning and sentiment classification (structured JSON output, simple classification). |
 | **pandas** | Data manipulation and merging | Standard, battle-tested library for tabular data. Handles CSV parsing, joins, and null value handling out of the box. |
 | **pydantic** | Typed data contracts between pipeline steps | Ensures data integrity at each boundary. Makes the orchestration self-documenting and catches schema violations early. |
 | **click** | CLI framework | Lightweight, well-documented, no magic. Supports commands, options, and flags with minimal boilerplate. |
@@ -75,9 +75,9 @@ This is the most important architectural decision in the system. The principle: 
 | Company name matching (call notes) | Deterministic | Case-insensitive string matching is sufficient for this dataset. At scale with fuzzy company names, an LLM or fuzzy matcher would be warranted. |
 | Data quality flagging | Deterministic | Rule-based null checks, 100% reliable, zero cost, reproducible. |
 | Risk scoring | Deterministic | Weighted numeric formula based on defined business rules. Reproducible, auditable, and explainable. |
-| Query understanding / planning | **LLM** | Natural language intent classification requires semantic understanding. "What should I focus on?" vs "What's at risk?" require different analysis approaches. |
-| Call note sentiment analysis | **LLM** | Free-text interpretation. "Interested but budget concerns" requires nuanced classification that no rule-based approach handles reliably. |
-| Final synthesis / recommendations | **LLM** | Requires reasoning across multiple data points (scores, sentiment, quality flags, amounts, dates) and generating natural language advice tailored to the specific question. |
+| Query understanding / planning | **LLM (Haiku)** | Natural language intent classification requires semantic understanding, but the output is structured JSON with 4 possible types. Simple enough for Haiku. |
+| Call note sentiment analysis | **LLM (Haiku)** | Free-text interpretation. "Interested but budget concerns" requires nuanced classification that no rule-based approach handles reliably. Simple classification task -- Haiku is sufficient. |
+| Final synthesis / recommendations | **LLM (Sonnet)** | Requires reasoning across multiple data points (scores, sentiment, quality flags, amounts, dates) and generating natural language advice tailored to the specific question. This is the only step that justifies a frontier model. |
 
 The boundary is not about difficulty but about whether the task has a **single correct answer derivable from rules** (deterministic) or requires **interpretation and judgment** (LLM).
 
@@ -93,18 +93,18 @@ This pattern extends easily to other sources by adding new modules (`sources/s3.
 
 ## Token Usage and Cost Optimization
 
-### Actual Token Usage (from example runs)
+### Actual Token Usage (from a 10-query interactive session)
 
-Each query costs approximately **$0.035-0.045** with Claude Sonnet 4.6 (planner + synthesizer) and Haiku 4.5 (analyzer):
+Cost per query ranges from **$0.014 to $0.044** depending on output length, averaging **$0.029 per query**:
 
 | Step | Model | Avg Input Tokens | Avg Output Tokens | Avg Cost |
 |------|-------|-----------------|-------------------|----------|
-| Planner | Sonnet 4.6 | ~348 | ~104 | $0.0026 |
-| Analyzer (sentiment) | Haiku 4.5 | ~136 | ~60 | $0.0003 |
-| Synthesizer | Sonnet 4.6 | ~857 | ~2,329 | $0.0375 |
-| **Total per query** | | **~1,341** | **~2,493** | **~$0.040** |
+| Planner | Haiku 4.5 | ~347 | ~77 | $0.0006 |
+| Analyzer (sentiment) | Haiku 4.5 | ~132 | ~56 | $0.0003 |
+| Synthesizer | Sonnet 4.6 | ~848 | ~1,550 | $0.0264 |
+| **Total per query** | | **~1,327** | **~1,683** | **~$0.029** |
 
-The synthesizer dominates cost (93%) because it produces the longest, most detailed output. The analyzer uses Haiku 4.5 for sentiment classification -- a simple task that doesn't require a frontier model, reducing its cost by ~4x compared to routing through Sonnet.
+A full 10-query session cost **$0.29 total**. The synthesizer dominates cost (~91%) because it produces the longest, most detailed output. Broad queries ("Summarize everything") cost ~$0.04; focused queries ("Tell me about Delta Inc") cost ~$0.014. The analyzer uses Haiku 4.5 for sentiment classification -- a simple task that doesn't require a frontier model, reducing its cost by ~4x compared to routing through Sonnet.
 
 ### Optimization Strategies Implemented
 
@@ -118,7 +118,6 @@ The synthesizer dominates cost (93%) because it produces the longest, most detai
 
 ### Production-Scale Strategies (Not Implemented)
 
-- **Route more tasks to Haiku**: Sentiment classification already uses Haiku 4.5. At scale, query planning could also be routed to Haiku for further cost reduction.
 - **Prompt caching**: System prompts are identical across queries. Anthropic's prompt caching feature would eliminate re-processing ~200 tokens of system prompt per call.
 - **Batch API**: For non-interactive runs (e.g., daily scheduled analysis), the Anthropic Batch API offers 50% cost reduction with 24-hour turnaround.
 

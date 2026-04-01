@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import sys
+from contextlib import contextmanager
 
 import click
 from rich.console import Console
@@ -16,21 +17,23 @@ if sys.stdout.encoding != "utf-8":
 if sys.stderr.encoding != "utf-8":
     sys.stderr.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
 
-from src.config import DEFAULT_GDRIVE_FOLDER_ID
-from src.models import (
-    AnalysisPlan,
-    DataQualityReport,
-    EnrichedDeal,
-    PipelineResult,
-    TokenUsage,
-)
-from src.pipeline.analyzer import analyze
-from src.pipeline.ingester import ingest
-from src.pipeline.planner import plan
-from src.pipeline.synthesizer import synthesize
-from src.sources.gdrive import load_from_gdrive
+from src.models import DataQualityReport, EnrichedDeal, PipelineResult
+from src.orchestrator import load_data, run_analysis
 
 console = Console()
+
+_STEP_LABELS = {
+    "planner": "Planning analysis...",
+    "analyzer": "Analyzing deals...",
+    "synthesizer": "Generating recommendations...",
+}
+
+
+@contextmanager
+def _step_spinner(step: str):
+    """Show a Rich spinner for each pipeline step."""
+    with console.status(f"[bold cyan]{_STEP_LABELS.get(step, step)}"):
+        yield
 
 
 # ── Display helpers ──────────────────────────────────────────────────
@@ -124,65 +127,6 @@ def _print_verbose(result: PipelineResult) -> None:
         )
 
 
-# ── Pipeline helpers ─────────────────────────────────────────────────
-
-def _load_data(
-    folder_id: str | None,
-    credentials: str,
-) -> tuple[list[EnrichedDeal], DataQualityReport]:
-    with console.status("[bold cyan]Downloading data from Google Drive..."):
-        drive_folder = folder_id or DEFAULT_GDRIVE_FOLDER_ID
-        data_path = load_from_gdrive(drive_folder, credentials)
-        deals, report = ingest(data_path)
-    console.print(f"  [green]\u2713[/green] {report.total_deals} deals loaded from Google Drive")
-    return deals, report
-
-
-def _run_analysis(
-    query: str,
-    deals: list[EnrichedDeal],
-    report: DataQualityReport,
-    verbose: bool = False,
-) -> PipelineResult:
-    token_usage = TokenUsage()
-
-    if not deals:
-        return PipelineResult(
-            query=query,
-            plan=AnalysisPlan(),
-            enriched_deals=[],
-            synthesis="No deals available to analyze.",
-            data_quality=report,
-            token_usage=token_usage,
-        )
-
-    with console.status("[bold cyan]Planning analysis..."):
-        analysis_plan, plan_usage = plan(query, deals)
-    token_usage.add_step("planner", **plan_usage)
-
-    with console.status("[bold cyan]Analyzing deals..."):
-        analyzed_deals, analyzer_usage = analyze(deals, analysis_plan)
-    token_usage.add_step("analyzer", **analyzer_usage)
-
-    with console.status("[bold cyan]Generating recommendations..."):
-        synthesis, synth_usage = synthesize(analyzed_deals, query, analysis_plan)
-    token_usage.add_step("synthesizer", **synth_usage)
-
-    result = PipelineResult(
-        query=query,
-        plan=analysis_plan,
-        enriched_deals=analyzed_deals,
-        synthesis=synthesis,
-        data_quality=report,
-        token_usage=token_usage,
-    )
-
-    if verbose:
-        _print_verbose(result)
-
-    return result
-
-
 # ── CLI commands ─────────────────────────────────────────────────────
 
 @click.group()
@@ -205,8 +149,13 @@ def ask(
     verbose: bool,
 ) -> None:
     """Ask a natural language business question about your deals."""
-    deals, report = _load_data(folder_id, credentials)
-    result = _run_analysis(query, deals, report, verbose)
+    with console.status("[bold cyan]Downloading data from Google Drive..."):
+        deals, report = load_data(folder_id, credentials)
+    console.print(f"  [green]\u2713[/green] {report.total_deals} deals loaded from Google Drive")
+
+    result = run_analysis(query, deals, report, on_step=_step_spinner)
+    if verbose:
+        _print_verbose(result)
     _print_recommendation(result)
 
 
@@ -218,7 +167,9 @@ def status(
     credentials: str,
 ) -> None:
     """Show data health check \u2014 no LLM calls, no cost."""
-    deals, report = _load_data(folder_id, credentials)
+    with console.status("[bold cyan]Downloading data from Google Drive..."):
+        deals, report = load_data(folder_id, credentials)
+    console.print(f"  [green]\u2713[/green] {report.total_deals} deals loaded from Google Drive")
     _print_deals_table(deals, report)
 
 
@@ -230,7 +181,9 @@ def chat(
     credentials: str,
 ) -> None:
     """Interactive copilot mode \u2014 ask multiple questions without re-loading data."""
-    deals, report = _load_data(folder_id, credentials)
+    with console.status("[bold cyan]Downloading data from Google Drive..."):
+        deals, report = load_data(folder_id, credentials)
+    console.print(f"  [green]\u2713[/green] {report.total_deals} deals loaded from Google Drive")
 
     console.print(Panel(
         f"[bold]{report.total_deals}[/bold] deals loaded \u2014 "
@@ -254,7 +207,7 @@ def chat(
             break
 
         try:
-            result = _run_analysis(query, deals, report)
+            result = run_analysis(query, deals, report, on_step=_step_spinner)
             _print_recommendation(result)
         except Exception as e:
             console.print(f"[red]Error: {e}[/red]")

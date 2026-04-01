@@ -92,7 +92,7 @@ DivergentChallenge/
     ├── example_1_focus.md
     ├── example_2_risk.md
     ├── example_3_weekly.md
-    └── example_4_chat.md
+    └── example_4_interactive_session.md
 ```
 
 ---
@@ -101,7 +101,7 @@ DivergentChallenge/
 
 Full examples with pipeline output are in the `examples/` directory:
 
-- [`example_4_chat.md`](examples/example_4_chat.md) - **Interactive chat session with two queries (recommended starting point)**
+- [`example_4_interactive_session.md`](examples/example_4_interactive_session.md) - **Interactive chat session with 10 queries (recommended starting point)**
 - [`example_1_focus.md`](examples/example_1_focus.md) - "Which deals should I focus on this week?"
 - [`example_2_risk.md`](examples/example_2_risk.md) - "What deals look at risk?"
 - [`example_3_weekly.md`](examples/example_3_weekly.md) - "What actions should we take this week?"
@@ -114,24 +114,24 @@ The fastest way to see the system in action is `python -m src.cli chat`. Data lo
   ✓ 5 deals loaded from Google Drive
 ╭──────────────── RevOps Copilot ─────────────────╮
 │ 5 deals loaded — 2 complete, 3 with gaps        │
-│ Type exit to quit                                │
+│ Type exit to quit                               │
 ╰─────────────────────────────────────────────────╯
 
 > Which deals should I focus on this week?
 
 ╭──────────────── Recommendation ─────────────────╮
-│                                                  │
-│  PRIORITY 1 — Beta Ltd ($120K) - Sarah           │
-│  Close date April 10 (9 days). Send redlined     │
-│  contract today, schedule live call by Apr 3,    │
-│  confirm signature path by Apr 7.                │
-│                                                  │
-│  PRIORITY 2 — Acme Corp ($50K) - John            │
-│  Budget concerns + 10-day silence. Call today,   │
-│  address budget head-on with phased payment or   │
-│  reduced scope option.                           │
-│                                                  │
-│  ...                                             │
+│                                                 │
+│  PRIORITY 1 — Beta Ltd ($120K) - Sarah          │
+│  Close date April 10 (9 days). Send redlined    │
+│  contract today, schedule live call by Apr 3,   │
+│  confirm signature path by Apr 7.               │
+│                                                 │
+│  PRIORITY 2 — Acme Corp ($50K) - John           │
+│  Budget concerns + 10-day silence. Call today,  │
+│  address budget head-on with phased payment or  │
+│  reduced scope option.                          │
+│                                                 │
+│  ...                                            │
 ╰─────────────────────────────────────────────────╯
 
 > What's the total pipeline value at risk?
