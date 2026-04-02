@@ -22,7 +22,8 @@ User Query
      v
 +----------+    Hybrid: deterministic risk scoring (weighted formula) +
 | ANALYZER |    LLM sentiment classification (batched, single call).
-+----+-----+    Output: deals with risk_score + sentiment attached.
++----+-----+    Output: deals scored, sorted by analysis_type, filtered
+     |          by filters_to_apply from the planner.
      |
      v
 +-------------+  LLM (Sonnet 4.6): generates prioritized, actionable recommendations
@@ -74,9 +75,9 @@ This is the most important architectural decision in the system. The principle: 
 | Data merging (joins on deal_id, company) | Deterministic | Exact-match keys, no interpretation needed. |
 | Company name matching (call notes) | Deterministic | Case-insensitive string matching is sufficient for this dataset. At scale with fuzzy company names, an LLM or fuzzy matcher would be warranted. |
 | Data quality flagging | Deterministic | Rule-based null checks, 100% reliable, zero cost, reproducible. |
-| Risk scoring, sorting, filtering | Deterministic | Weighted numeric formula based on defined business rules. After scoring, deals are sorted by the planner's `analysis_type` (risk, priority, actions, general) and filtered by `filters_to_apply`. This is where the planner's output becomes load-bearing -- it controls what the synthesizer sees. |
+| Risk scoring, sorting, filtering | Deterministic | Weighted numeric formula based on defined business rules. After scoring, deals are sorted by the planner's `analysis_type` (risk, priority, actions, general) and filtered by `filters_to_apply`. This is where the planner's output becomes load-bearing, it controls what the synthesizer sees. |
 | Query understanding / planning | **LLM (Haiku)** | Natural language intent classification requires semantic understanding, but the output is structured JSON with 4 possible types. Simple enough for Haiku. |
-| Call note sentiment analysis | **LLM (Haiku)** | Free-text interpretation. "Interested but budget concerns" requires nuanced classification that no rule-based approach handles reliably. Simple classification task -- Haiku is sufficient. |
+| Call note sentiment analysis | **LLM (Haiku)** | Free-text interpretation. "Interested but budget concerns" requires nuanced classification that no rule-based approach handles reliably. |
 | Final synthesis / recommendations | **LLM (Sonnet)** | Requires reasoning across multiple data points (scores, sentiment, quality flags, amounts, dates) and generating natural language advice tailored to the specific question. This is the only step that justifies a frontier model. |
 
 The boundary is not about difficulty but about whether the task has a **single correct answer derivable from rules** (deterministic) or requires **interpretation and judgment** (LLM).
