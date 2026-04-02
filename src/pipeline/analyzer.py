@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import date
 
 from src.config import FAST_MODEL
 from src.llm import call_llm_json
@@ -72,6 +73,66 @@ def _classify_sentiment(deals: list[EnrichedDeal]) -> tuple[dict[str, str], dict
         return fallback, {"input_tokens": 0, "output_tokens": 0, "cost": 0.0}
 
 
+def _sort_deals(deals: list[EnrichedDeal], plan: AnalysisPlan) -> list[EnrichedDeal]:
+    """Sort deals based on the planner's analysis_type."""
+    analysis_type = plan.analysis_type
+
+    if analysis_type == "priority":
+        return sorted(
+            deals,
+            key=lambda d: (-(d.amount * d.probability), d.risk_score or 0.0),
+        )
+
+    if analysis_type == "actions":
+        _far_future = date(9999, 12, 31)
+        return sorted(
+            deals,
+            key=lambda d: (
+                d.close_date or _far_future,
+                -(d.last_contact_days or 0),
+            ),
+        )
+
+    # "risk" and "general" both sort by risk_score descending
+    return sorted(deals, key=lambda d: -(d.risk_score or 0.0))
+
+
+def _apply_filters(deals: list[EnrichedDeal], plan: AnalysisPlan) -> list[EnrichedDeal]:
+    """Apply planner-specified filters. Falls back to full list if nothing matches."""
+    if not plan.filters_to_apply:
+        return deals
+
+    known_fields = EnrichedDeal.model_fields
+    filtered = deals
+    for key, value in plan.filters_to_apply.items():
+        # min_ prefix: numeric threshold
+        if key.startswith("min_"):
+            field_name = key[4:]  # strip "min_"
+            if field_name not in known_fields:
+                continue
+            filtered = [
+                d for d in filtered
+                if getattr(d, field_name, None) is not None
+                and getattr(d, field_name) >= value
+            ]
+        else:
+            # String field: case-insensitive contains
+            if key not in known_fields:
+                continue
+            filter_val = str(value).lower()
+            filtered = [
+                d for d in filtered
+                if getattr(d, key, None) is not None
+                and filter_val in str(getattr(d, key)).lower()
+            ]
+
+    # Fallback: if filtering removed everything, return the original list
+    if not filtered:
+        return deals
+
+    return filtered
+
+
 def analyze(
     deals: list[EnrichedDeal],
     analysis_plan: AnalysisPlan,
@@ -95,6 +156,10 @@ def analyze(
     sentiment_map, usage = _classify_sentiment(working_deals)
     for deal in working_deals:
         deal.sentiment = sentiment_map.get(deal.company.strip().lower(), "unclear")
+
+    # Sort and filter deals based on analysis plan
+    working_deals = _sort_deals(working_deals, analysis_plan)
+    working_deals = _apply_filters(working_deals, analysis_plan)
 
     logger.info("Analyzed %d deals", len(working_deals))
     return working_deals, usage
