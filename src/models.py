@@ -56,7 +56,10 @@ class EnrichedDeal(BaseModel):
     meetings: Optional[int] = None
     email_threads: Optional[int] = None
     has_account_match: bool = False
+    # Record-completeness issues only (missing fields, no account match, missing notes/activity).
     data_quality_flags: list[str] = Field(default_factory=list)
+    # Sales-risk signals that are not data quality issues (e.g. stale_contact).
+    risk_flags: list[str] = Field(default_factory=list)
     risk_score: Optional[float] = None
     sentiment: Optional[str] = None
 
@@ -74,6 +77,24 @@ class DataQualityReport(BaseModel):
     incomplete_deals: int
     missing_fields_summary: dict[str, int] = Field(default_factory=dict)
     orphaned_companies: list[str] = Field(default_factory=list)
+
+
+class ScopeMetrics(BaseModel):
+    """Deterministic aggregates computed over the exact deal slice the user is shown.
+
+    Scope follows the analyzer's filtered output. For unfiltered queries this is the
+    full portfolio; for owner/region/etc-filtered queries this is the scoped subset.
+    These numbers are authoritative and rendered in code, never re-derived by the LLM.
+    """
+
+    scope_description: str = "Portfolio"
+    deal_count: int = 0
+    total_pipeline: float = 0.0
+    weighted_pipeline: float = 0.0
+    overdue_count: int = 0
+    stale_count: int = 0
+    incomplete_data_count: int = 0
+    owners: list[str] = Field(default_factory=list)
 
 
 class AnalysisPlan(BaseModel):
@@ -118,4 +139,5 @@ class PipelineResult(BaseModel):
     enriched_deals: list[EnrichedDeal]
     synthesis: str
     data_quality: DataQualityReport
+    scope_metrics: ScopeMetrics = Field(default_factory=ScopeMetrics)
     token_usage: TokenUsage

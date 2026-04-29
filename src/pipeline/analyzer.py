@@ -7,7 +7,8 @@ from datetime import date
 
 from src.config import FAST_MODEL
 from src.llm import call_llm_json
-from src.models import AnalysisPlan, EnrichedDeal
+from src.models import AnalysisPlan, EnrichedDeal, ScopeMetrics
+from src.pipeline.metrics import compute_scope_metrics
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +46,10 @@ def _compute_risk_score(deal: EnrichedDeal) -> float:
     # Probability: inverted (low prob = high risk)
     score += (1.0 - deal.probability) * 0.25
 
-    # Data quality flags: each adds 0.1
-    score += len(deal.data_quality_flags) * 0.1
+    # Each data-quality and risk flag amplifies the score by 0.1.
+    # (stale_contact lives in risk_flags after the data-quality/risk split,
+    # so we count both families to preserve the original risk contribution.)
+    score += (len(deal.data_quality_flags) + len(deal.risk_flags)) * 0.1
 
     return min(round(score, 3), 1.0)
 
@@ -136,8 +139,15 @@ def _apply_filters(deals: list[EnrichedDeal], plan: AnalysisPlan) -> list[Enrich
 def analyze(
     deals: list[EnrichedDeal],
     analysis_plan: AnalysisPlan,
-) -> tuple[list[EnrichedDeal], dict]:
-    """Score and classify deals. Returns (updated deals, usage_dict)."""
+    today: date | None = None,
+) -> tuple[list[EnrichedDeal], ScopeMetrics, dict]:
+    """Score, classify, filter, and aggregate.
+
+    Returns (working_deals, scope_metrics, usage_dict). scope_metrics is computed
+    over the final filtered slice so it matches what the user sees.
+    """
+    total_in_dataset = len(deals)
+
     # Filter deals based on plan
     if isinstance(analysis_plan.relevant_deals, list):
         relevant_ids = set(analysis_plan.relevant_deals)
@@ -161,5 +171,10 @@ def analyze(
     working_deals = _sort_deals(working_deals, analysis_plan)
     working_deals = _apply_filters(working_deals, analysis_plan)
 
+    # Deterministic aggregates over the exact slice the user will see.
+    metrics = compute_scope_metrics(
+        working_deals, analysis_plan, total_in_dataset, today=today
+    )
+
     logger.info("Analyzed %d deals", len(working_deals))
-    return working_deals, usage
+    return working_deals, metrics, usage

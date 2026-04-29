@@ -12,6 +12,7 @@ from src.models import (
     DataQualityReport,
     EnrichedDeal,
     PipelineResult,
+    ScopeMetrics,
     TokenUsage,
 )
 from src.pipeline.analyzer import analyze
@@ -55,6 +56,7 @@ def run_analysis(
             enriched_deals=[],
             synthesis="No deals available to analyze.",
             data_quality=quality_report,
+            scope_metrics=ScopeMetrics(scope_description="Portfolio (0 deals)"),
             token_usage=token_usage,
         )
 
@@ -63,11 +65,15 @@ def run_analysis(
     token_usage.add_step("planner", **plan_usage)
 
     with ctx("analyzer"):
-        analyzed_deals, analyzer_usage = analyze(enriched_deals, analysis_plan)
+        analyzed_deals, scope_metrics, analyzer_usage = analyze(
+            enriched_deals, analysis_plan
+        )
     token_usage.add_step("analyzer", **analyzer_usage)
 
     with ctx("synthesizer"):
-        synthesis, synth_usage = synthesize(analyzed_deals, query, analysis_plan)
+        synthesis, synth_usage = synthesize(
+            analyzed_deals, query, analysis_plan, scope_metrics
+        )
     token_usage.add_step("synthesizer", **synth_usage)
 
     return PipelineResult(
@@ -76,5 +82,6 @@ def run_analysis(
         enriched_deals=analyzed_deals,
         synthesis=synthesis,
         data_quality=quality_report,
+        scope_metrics=scope_metrics,
         token_usage=token_usage,
     )

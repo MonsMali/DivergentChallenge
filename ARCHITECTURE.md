@@ -22,13 +22,20 @@ User Query
      v
 +----------+    Hybrid: deterministic risk scoring (weighted formula) +
 | ANALYZER |    LLM sentiment classification (batched, single call).
-+----+-----+    Output: deals scored, sorted by analysis_type, filtered
-     |          by filters_to_apply from the planner.
++----+-----+    Then computes deterministic ScopeMetrics over the final
+     |          filtered slice (total_pipeline, weighted_pipeline, overdue,
+     |          stale, data-gap counts) so headline numbers never depend
+     |          on the LLM. Output: scored/sorted/filtered deals + ScopeMetrics.
      |
      v
-+-------------+  LLM (Sonnet 4.6): generates prioritized, actionable recommendations
-| SYNTHESIZER |  with specific deals, dollar amounts, and next steps.
-+-------------+  Output: natural language advisory text.
++-------------+  LLM (Sonnet 4.6): receives the deal slice + the ScopeMetrics
+| SYNTHESIZER |  block as authoritative, non-recomputable inputs. Generates
++------+------+  prioritized recommendations with deals, owners, and next steps.
+       |        Output: natural language advisory text.
+       v
++-------------+  CLI renders the ScopeMetrics block as a deterministic Rich
+|     CLI     |  panel ABOVE the synthesis panel, so the user-visible headline
++-------------+  figures are always computed in code, not by the model.
 ```
 
 ## AI Tools and Frameworks Used
@@ -76,6 +83,7 @@ This is the most important architectural decision in the system. The principle: 
 | Company name matching (call notes) | Deterministic | Case-insensitive string matching is sufficient for this dataset. At scale with fuzzy company names, an LLM or fuzzy matcher would be warranted. |
 | Data quality flagging | Deterministic | Rule-based null checks, 100% reliable, zero cost, reproducible. |
 | Risk scoring, sorting, filtering | Deterministic | Weighted numeric formula based on defined business rules. After scoring, deals are sorted by the planner's `analysis_type` (risk, priority, actions, general) and filtered by `filters_to_apply`. This is where the planner's output becomes load-bearing, it controls what the synthesizer sees. |
+| Headline aggregates (weighted pipeline, overdue counts, stale counts, deals with data gaps) | Deterministic | Sums and counts have a single correct answer. Letting the LLM compute these from raw deal data introduced numerical drift in early testing (the synthesizer reported $126K weighted pipeline vs. an actual $190.5K). Aggregates are now computed in `pipeline/metrics.py` over the analyzer's final filtered slice, rendered by the CLI directly, and passed to the synthesizer with a "do not recompute" instruction. |
 | Query understanding / planning | **LLM (Haiku)** | Natural language intent classification requires semantic understanding, but the output is structured JSON with 4 possible types. Simple enough for Haiku. |
 | Call note sentiment analysis | **LLM (Haiku)** | Free-text interpretation. "Interested but budget concerns" requires nuanced classification that no rule-based approach handles reliably. |
 | Final synthesis / recommendations | **LLM (Sonnet)** | Requires reasoning across multiple data points (scores, sentiment, quality flags, amounts, dates) and generating natural language advice tailored to the specific question. This is the only step that justifies a frontier model. |

@@ -12,6 +12,7 @@ from src.models import (
     Deal,
     EnrichedDeal,
     PipelineResult,
+    ScopeMetrics,
     TokenUsage,
 )
 
@@ -59,6 +60,7 @@ def test_enriched_deal_defaults():
     )
     assert ed.has_account_match is False
     assert ed.data_quality_flags == []
+    assert ed.risk_flags == []
     assert ed.risk_score is None
     assert ed.sentiment is None
 
@@ -97,3 +99,17 @@ def test_pipeline_result():
         token_usage=TokenUsage(),
     )
     assert result.query == "test"
+    # scope_metrics has a sensible default so existing call sites don't break.
+    assert result.scope_metrics.deal_count == 0
+
+
+def test_scope_metrics_defaults():
+    m = ScopeMetrics()
+    assert m.scope_description == "Portfolio"
+    assert m.deal_count == 0
+    assert m.total_pipeline == 0.0
+    assert m.weighted_pipeline == 0.0
+    assert m.overdue_count == 0
+    assert m.stale_count == 0
+    assert m.incomplete_data_count == 0
+    assert m.owners == []

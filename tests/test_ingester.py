@@ -36,7 +36,9 @@ def test_beta_ltd_fully_enriched(ingested_data):
 def test_delta_inc_stale_contact(ingested_data):
     deals, _ = ingested_data
     delta = [d for d in deals if d.company == "Delta Inc"][0]
-    assert "stale_contact" in delta.data_quality_flags
+    # stale_contact is a sales-risk signal, not a data-quality issue.
+    assert "stale_contact" in delta.risk_flags
+    assert "stale_contact" not in delta.data_quality_flags
     assert delta.last_contact_days == 25
 
 

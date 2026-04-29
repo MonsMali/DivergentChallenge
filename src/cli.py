@@ -17,7 +17,7 @@ if sys.stdout.encoding != "utf-8":
 if sys.stderr.encoding != "utf-8":
     sys.stderr.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
 
-from src.models import DataQualityReport, EnrichedDeal, PipelineResult
+from src.models import DataQualityReport, EnrichedDeal, PipelineResult, ScopeMetrics
 from src.orchestrator import load_data, run_analysis
 
 console = Console()
@@ -48,8 +48,37 @@ def _print_token_usage(result: PipelineResult) -> None:
     )
 
 
-def _print_recommendation(result: PipelineResult) -> None:
+def _print_scope_metrics(metrics: ScopeMetrics) -> None:
+    """Render headline numbers deterministically, above the LLM panel."""
+    table = Table(
+        title=f"[bold]{metrics.scope_description}[/bold]",
+        show_header=False,
+        box=None,
+        padding=(0, 1),
+        title_justify="left",
+    )
+    table.add_column(style="dim")
+    table.add_column(justify="right")
+    table.add_row("Total pipeline", f"${metrics.total_pipeline:,.0f}")
+    table.add_row("Weighted pipeline", f"${metrics.weighted_pipeline:,.0f}")
+    table.add_row("Deals in scope", str(metrics.deal_count))
+    table.add_row("Overdue close dates", str(metrics.overdue_count))
+    table.add_row("Stale contacts (>14d)", str(metrics.stale_count))
+    table.add_row("Records with data gaps", str(metrics.incomplete_data_count))
+    if metrics.owners:
+        table.add_row("Owners in scope", ", ".join(metrics.owners))
+
     console.print()
+    console.print(Panel(
+        table,
+        title="[bold]Headline Metrics (deterministic)[/bold]",
+        border_style="cyan",
+        padding=(0, 1),
+    ))
+
+
+def _print_recommendation(result: PipelineResult) -> None:
+    _print_scope_metrics(result.scope_metrics)
     console.print(Panel(
         result.synthesis,
         title="[bold]Recommendation[/bold]",
@@ -109,6 +138,12 @@ def _print_verbose(result: PipelineResult) -> None:
     console.print(f"\n[bold cyan]--- Planner ---[/bold cyan]")
     console.print(f"  Type: {result.plan.analysis_type}")
     console.print(f"  Deals: {result.plan.relevant_deals}")
+    filters = result.plan.filters_to_apply or {}
+    if filters:
+        filter_str = ", ".join(f"{k}={v}" for k, v in filters.items())
+        console.print(f"  Filters: {filter_str}")
+    else:
+        console.print(f"  Filters: [dim]none[/dim]")
     console.print(f"  Reasoning: [italic]{result.plan.reasoning}[/italic]")
 
     console.print(f"\n[bold cyan]--- Analyzer ---[/bold cyan]")

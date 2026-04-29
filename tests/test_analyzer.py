@@ -4,6 +4,7 @@ from datetime import date
 
 from src.models import AnalysisPlan, EnrichedDeal
 from src.pipeline.analyzer import _compute_risk_score
+from src.pipeline.metrics import compute_scope_metrics
 from tests.conftest import requires_gdrive
 
 
@@ -202,3 +203,91 @@ def test_delta_inc_higher_risk_than_acme(ingested_data):
     deals, _ = ingested_data
     scores = {d.company: _compute_risk_score(d) for d in deals}
     assert scores["Delta Inc"] > scores["Acme Corp"]
+
+
+# ── ScopeMetrics tests ──────────────────────────────────────────────────
+
+
+def _fixed_today() -> date:
+    return date(2026, 4, 29)
+
+
+def test_compute_scope_metrics_full_portfolio():
+    deals = [
+        _make_deal(deal_id=1, owner="John", amount=50000, probability=0.6,
+                   close_date=date(2026, 4, 1)),  # overdue vs fixed_today
+        _make_deal(deal_id=2, owner="Sarah", amount=120000, probability=0.8,
+                   close_date=date(2026, 5, 30)),
+        _make_deal(deal_id=3, owner="John", amount=75000, probability=0.5,
+                   close_date=date(2026, 6, 30),
+                   risk_flags=["stale_contact"], last_contact_days=25),
+    ]
+    plan = AnalysisPlan()  # relevant_deals="all", no filters
+    m = compute_scope_metrics(deals, plan, total_in_dataset=3, today=_fixed_today())
+
+    assert m.scope_description == "Portfolio (3 deals)"
+    assert m.deal_count == 3
+    assert m.total_pipeline == 245000.0
+    # 50000*0.6 + 120000*0.8 + 75000*0.5 = 30000 + 96000 + 37500 = 163500
+    assert m.weighted_pipeline == 163500.0
+    assert m.overdue_count == 1
+    assert m.stale_count == 1
+    assert m.incomplete_data_count == 0
+    assert m.owners == ["John", "Sarah"]
+
+
+def test_compute_scope_metrics_filtered_owner():
+    deals = [
+        _make_deal(deal_id=1, owner="John", amount=50000, probability=0.6),
+        _make_deal(deal_id=3, owner="John", amount=75000, probability=0.5),
+    ]
+    plan = AnalysisPlan(filters_to_apply={"owner": "John"})
+    m = compute_scope_metrics(deals, plan, total_in_dataset=5, today=_fixed_today())
+
+    assert "John" in m.scope_description
+    assert "2 of 5" in m.scope_description
+    assert m.deal_count == 2
+    assert m.total_pipeline == 125000.0
+    assert m.weighted_pipeline == 67500.0  # 30000 + 37500
+    assert m.owners == ["John"]
+
+
+def test_compute_scope_metrics_counts_data_gaps_separately_from_staleness():
+    deals = [
+        _make_deal(deal_id=5, owner="Sarah",
+                   data_quality_flags=["missing_stage", "no_account_match"],
+                   risk_flags=[]),
+        _make_deal(deal_id=3, owner="John",
+                   data_quality_flags=[],
+                   risk_flags=["stale_contact"]),
+    ]
+    plan = AnalysisPlan()
+    m = compute_scope_metrics(deals, plan, total_in_dataset=2, today=_fixed_today())
+
+    # Deal 5 has data gaps; Deal 3 is stale (risk, not data quality).
+    assert m.incomplete_data_count == 1
+    assert m.stale_count == 1
+
+
+def test_compute_scope_metrics_filter_that_didnt_reduce_is_portfolio():
+    """Planner-supplied filter that fell back to the full list reads as portfolio."""
+    deals = [
+        _make_deal(deal_id=1, owner="John"),
+        _make_deal(deal_id=2, owner="Sarah"),
+    ]
+    plan = AnalysisPlan(filters_to_apply={"data_quality_flags": ["missing_stage"]})
+    m = compute_scope_metrics(deals, plan, total_in_dataset=2, today=_fixed_today())
+    assert m.scope_description == "Portfolio (2 deals)"
+
+
+def test_compute_scope_metrics_today_is_injectable():
+    deals = [
+        _make_deal(deal_id=1, close_date=date(2026, 5, 1)),
+    ]
+    plan = AnalysisPlan()
+    # On 2026-04-29 the deal is not overdue.
+    m_before = compute_scope_metrics(deals, plan, 1, today=date(2026, 4, 29))
+    assert m_before.overdue_count == 0
+    # On 2026-05-15 it is.
+    m_after = compute_scope_metrics(deals, plan, 1, today=date(2026, 5, 15))
+    assert m_after.overdue_count == 1

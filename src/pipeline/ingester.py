@@ -79,7 +79,11 @@ def ingest(data_dir: str) -> tuple[list[EnrichedDeal], DataQualityReport]:
         account = account_map.get(company_key)
         note = call_notes.get(company_key)
 
+        # Record-completeness issues only.
         flags: list[str] = []
+        # Sales-risk signals (not data quality issues).
+        risk_flags: list[str] = []
+
         if pd.isna(row.get("stage")) or row.get("stage") == "":
             flags.append("missing_stage")
             missing_fields_summary["stage"] = missing_fields_summary.get("stage", 0) + 1
@@ -97,7 +101,7 @@ def ingest(data_dir: str) -> tuple[list[EnrichedDeal], DataQualityReport]:
 
         last_contact = None if pd.isna(row.get("last_contact_days")) else int(row["last_contact_days"])
         if last_contact is not None and last_contact > 14:
-            flags.append("stale_contact")
+            risk_flags.append("stale_contact")
 
         close_date = None
         raw_cd = row.get("close_date")
@@ -126,6 +130,7 @@ def ingest(data_dir: str) -> tuple[list[EnrichedDeal], DataQualityReport]:
             email_threads=None if pd.isna(row.get("email_threads")) else int(row["email_threads"]),
             has_account_match=account is not None,
             data_quality_flags=flags,
+            risk_flags=risk_flags,
         )
         enriched_deals.append(ed)
 

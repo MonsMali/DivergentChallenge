@@ -83,6 +83,7 @@ DivergentChallenge/
 │       ├── ingester.py          # Deterministic: load, parse, normalize, join
 │       ├── planner.py           # LLM: query understanding, plan generation
 │       ├── analyzer.py          # Hybrid: deterministic scoring + LLM classification
+│       ├── metrics.py           # Deterministic: aggregate headline numbers
 │       └── synthesizer.py       # LLM: actionable output generation
 ├── tests/
 │   ├── test_models.py
